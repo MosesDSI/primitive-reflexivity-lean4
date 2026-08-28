@@ -20,3 +20,8 @@ jobs:
       with:
         do-release: true
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # When the push creates a new branch (e.g. the very first push), GitHub
+        # reports `before` as the all-zero SHA, which is not a valid Git revision.
+        # In that case, fall back to Git's magic empty tree hash so the diff range
+        # covers the full history instead of failing with "Invalid revision range".
+        before: ${{ github.event.before != '0000000000000000000000000000000000000000' && github.event.before || '4b825dc642cb6eb9a060e54bf8d69288fbee4904' }}
