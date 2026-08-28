@@ -72,6 +72,9 @@ on every push.
 - `PrimitiveReflexivity/Basic.lean` — unused scaffold file from `lake new`.
 - `Theorems_Original_and_Adjustments.md` — original theorem code + full adjustment log.
 - `2026-08-28_PrimitiveReflexivity_Lean4_Formalization.md` — build summary / verification record.
+- `ACKNOWLEDGMENTS.md` — authorship and the human–AI formalization pipeline (Jonathon Pearson's
+  paper → Gemini's initial Lean translation → Claude Code's environment setup and proof repair),
+  plus a note on what "verified" does and doesn't establish.
 - `lakefile.toml` / `lean-toolchain` — pin the exact Lean and Mathlib versions used.
 
 ## License
