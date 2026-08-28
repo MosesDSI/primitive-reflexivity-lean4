@@ -14,3 +14,5 @@ open PrimitiveReflexivity
 #print axioms geometric_mean_bridge
 #print axioms mediator_defect_positive
 #print axioms equipartition_fixed_point
+#print axioms group_inequivalence
+#print axioms real_not_equiv_circle

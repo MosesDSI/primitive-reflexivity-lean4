@@ -4,11 +4,12 @@
 
 A Lean 4 + [Mathlib](https://github.com/leanprover-community/mathlib4) formalization of the
 reflexivity axioms, arithmetic descent / prime-identity theorem, dual-axis geometric
-incommensurability theorems, and triadic-state / mediator-defect theorems from the paper
+incommensurability theorems, triadic-state / mediator-defect theorems, and the group-inequivalence
+theorem `(ℝ, +) ≇ U(1)`, from the paper
 **"Foundations of Primitive Reflexivity: The Discrete Node-First Ontology, Axis Incommensurability,
 and the Phase-Drift Definition of Angles."**
 
-All 12 theorems compile with **zero `sorry`**, verified against Lean `v4.33.1` /
+All 14 theorems compile with **zero `sorry`**, verified against Lean `v4.33.1` /
 Mathlib rev `0df444a3`. The badge above tracks the same build run on every push, on a clean
 GitHub-hosted machine, independent of this author's environment — that's the point of publishing
 it this way: anyone can re-run the exact same check.
@@ -31,6 +32,8 @@ All theorems live in [`PrimitiveReflexivity/Foundations.lean`](PrimitiveReflexiv
 | `geometric_mean_bridge` | `√(n · n²) = n · √n` for natural `n`. |
 | `mediator_defect_positive` | `√n + √m > √(n + m)` for positive naturals `n, m` — the "mediator defect" is always strictly positive. |
 | `equipartition_fixed_point` | `cos²(π/4) = sin²(π/4) = 1/2`. |
+| `group_inequivalence` | No bijection `ℝ ≃ Circle` respects both group structures (unbundled form). |
+| `real_not_equiv_circle` | `(ℝ, +) ≇ U(1)`: no `MulEquiv` exists between `Multiplicative ℝ` and `Circle`. |
 
 See [`Theorems_Original_and_Adjustments.md`](Theorems_Original_and_Adjustments.md) for the theorem
 code exactly as originally drafted from the paper, and a line-by-line record of every adjustment

@@ -7,6 +7,7 @@ import Mathlib.Data.Complex.Basic
 import Mathlib.Analysis.Complex.Exponential
 import Mathlib.Topology.Instances.Real.Lemmas
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
+import Mathlib.Analysis.Complex.Circle
 
 set_option linter.style.header false
 set_option linter.unusedVariables false
@@ -144,6 +145,40 @@ theorem period_incommensurability :
     exact h_div.symm
   rcases h_rational with ⟨q, hq⟩
   exact two_pi_irrational ⟨q, hq⟩
+
+/- Group Inequivalence: (ℝ, +) ≇ U(1), via torsion.
+   (ℝ, +) is torsion-free; Circle (≅ U(1)) has a genuine order-2 element (-1).
+   No group isomorphism can identify a torsion-free group with one that has torsion. -/
+
+/-- Unbundled form: no bijection ℝ ≃ Circle respects the additive/multiplicative structure
+    on both sides. Proved directly from the torsion argument, without going through the
+    `Multiplicative`/`MulEquiv` type-tag machinery, to keep the core algebraic argument
+    self-contained and low-risk. -/
+theorem group_inequivalence
+    (f : ℝ ≃ Circle) (hf : ∀ x y : ℝ, f (x + y) = f x * f y) : False := by
+  have hf0 : f 0 = 1 := by
+    have h : f 0 = f 0 * f 0 := by simpa using hf 0 0
+    have heq : f 0 * 1 = f 0 * f 0 := by rw [mul_one]; exact h
+    exact (mul_left_cancel heq).symm
+  obtain ⟨r, hr⟩ := f.surjective (-1 : Circle)
+  have hneg1 : (-1 : Circle) * (-1 : Circle) = 1 := by
+    rw [neg_mul_neg, one_mul]
+  have h1 : f (r + r) = 1 := by rw [hf, hr, hneg1]
+  have h2 : r + r = 0 := f.injective (h1.trans hf0.symm)
+  have hr0 : r = 0 := by linarith
+  rw [hr0, hf0] at hr
+  exact Circle.neg_ne_self 1 hr.symm
+
+/-- Bundled form, matching the paper's `(ℝ, +) ≇ U(1)` notation directly: no `MulEquiv` exists
+    between `Multiplicative ℝ` (i.e. (ℝ, +) relabeled with multiplicative notation) and `Circle`.
+    Derived as a thin corollary of `group_inequivalence` rather than re-proving the argument. -/
+theorem real_not_equiv_circle : ¬ Nonempty (Multiplicative ℝ ≃* Circle) := by
+  rintro ⟨g⟩
+  apply group_inequivalence (Equiv.trans Multiplicative.ofAdd g.toEquiv)
+  intro x y
+  change g (Multiplicative.ofAdd (x + y)) = g (Multiplicative.ofAdd x) * g (Multiplicative.ofAdd y)
+  have hadd : Multiplicative.ofAdd (x + y) = Multiplicative.ofAdd x * Multiplicative.ofAdd y := rfl
+  rw [hadd, map_mul]
 
 /- =====================================================================
    SECTION IX: THE TRIADIC STATE MANIFOLD & MEDIATOR DEFECT

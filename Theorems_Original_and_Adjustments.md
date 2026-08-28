@@ -350,3 +350,88 @@ and `equipartition_fixed_point` needed no changes beyond what's listed in §2.1�
 independently via `#print axioms` on all 12 theorems — every one depends only on Lean/Mathlib's
 standard trust base (`propext`, `Classical.choice`, `Quot.sound`), never on `sorryAx`. Full detail
 in `2026-08-28_PrimitiveReflexivity_Lean4_Formalization.md` in this same folder.
+
+---
+
+## 4. Addendum — Group Inequivalence (ℝ, +) ≇ U(1)
+
+Closes the gap left by Theorem 3 Part 1 not being in the original 12-theorem suite (Part 2,
+`period_incommensurability`, was already covered above). Drafted separately in
+`Group_Inequivalence_Implementation_Brief.md` and added to
+`PrimitiveReflexivity/Foundations.lean` at the end of Section VII.
+
+### 4.1 As supplied (brief §1)
+
+```lean
+import Mathlib.Analysis.Complex.Circle
+
+theorem group_inequivalence
+    (f : ℝ ≃ Circle) (hf : ∀ x y : ℝ, f (x + y) = f x * f y) : False := by
+  have hf0 : f 0 = 1 := by
+    have h : f 0 = f 0 * f 0 := by simpa using hf 0 0
+    have heq : f 0 * 1 = f 0 * f 0 := by rw [mul_one]; exact h
+    exact (mul_left_cancel heq).symm
+  obtain ⟨r, hr⟩ := f.surjective (-1 : Circle)
+  have hneg1 : (-1 : Circle) * (-1 : Circle) = 1 := by
+    rw [neg_mul_neg, one_mul]
+  have h1 : f (r + r) = 1 := by rw [hf, hr, hneg1]
+  have h2 : r + r = 0 := f.injective (h1.trans hf0.symm)
+  have hr0 : r = 0 := by linarith
+  rw [hr0, hf0] at hr
+  exact Circle.neg_ne_self 1 hr.symm
+
+theorem real_not_equiv_circle : ¬ Nonempty (Multiplicative ℝ ≃* Circle) := by
+  rintro ⟨g⟩
+  apply group_inequivalence (Equiv.trans Multiplicative.ofAdd g.toEquiv)
+  intro x y
+  simp only [Equiv.trans_apply, MulEquiv.coe_toEquiv]
+  have hadd : Multiplicative.ofAdd (x + y) = Multiplicative.ofAdd x * Multiplicative.ofAdd y := rfl
+  rw [hadd, map_mul]
+```
+
+### 4.2 What actually broke, and the fix
+
+`group_inequivalence` (the unbundled form) compiled unchanged on the first attempt — none of the
+brief's flagged risks (`Circle.neg_ne_self`, `Circle.instCommGroup`/`instHasDistribNeg`) materialized.
+
+`real_not_equiv_circle` did not build. The brief's own top-flagged risk was the `hadd := rfl` line;
+that line was in fact fine. The real failure was the following step, `rw [hadd, map_mul]`:
+
+```
+error: PrimitiveReflexivity/Foundations.lean:181:12: failed to synthesize instance of type class
+  MulHomClass (Multiplicative ℝ ≃ Circle) (Multiplicative ℝ) Circle
+error: PrimitiveReflexivity/Foundations.lean:175:75: unsolved goals
+g : Multiplicative ℝ ≃* Circle
+x y : ℝ
+hadd : Multiplicative.ofAdd (x + y) = Multiplicative.ofAdd x * Multiplicative.ofAdd y
+⊢ MulHomClass (Multiplicative ℝ ≃ Circle) (Multiplicative ℝ) Circle
+```
+
+**Cause:** `Equiv.trans Multiplicative.ofAdd g.toEquiv` is a bare `Equiv` — composing through
+`.toEquiv` strips off `g`'s `MulEquiv` bundling, so nothing in scope carries a `MulHomClass`
+instance for `map_mul` to find, even though `g` itself has one.
+
+**Fix:** replaced the `simp [...]` + `rw [hadd, map_mul]` pair with a `change` to the definitionally
+equal goal stated directly in terms of `g` (not the composed `Equiv`), then closed it with `map_mul`
+applied to `g` itself, which does carry the instance:
+
+```lean
+theorem real_not_equiv_circle : ¬ Nonempty (Multiplicative ℝ ≃* Circle) := by
+  rintro ⟨g⟩
+  apply group_inequivalence (Equiv.trans Multiplicative.ofAdd g.toEquiv)
+  intro x y
+  change g (Multiplicative.ofAdd (x + y)) = g (Multiplicative.ofAdd x) * g (Multiplicative.ofAdd y)
+  have hadd : Multiplicative.ofAdd (x + y) = Multiplicative.ofAdd x * Multiplicative.ofAdd y := rfl
+  rw [hadd, map_mul]
+```
+
+(First tried `show` instead of `change` for that step; Lean's style linter flagged it —
+`` `show` should only be used to indicate intermediate goal states for readability... this tactic
+invocation changed the goal `` — because the stated goal isn't syntactically the one on screen, only
+definitionally equal to it. `change` is the correct tactic for that and carries no such warning.)
+
+### 4.3 Result
+
+Builds with 0 errors, 0 `sorry`. `#print axioms` on both: `[propext, Classical.choice, Quot.sound]`
+— the same standard trust base as the rest of the suite, no `sorryAx`. Theorem count for the project
+is now 14; see `2026-08-28_PrimitiveReflexivity_Lean4_Formalization.md` for the updated table.

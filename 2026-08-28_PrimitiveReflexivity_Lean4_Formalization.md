@@ -2,7 +2,7 @@
 **Date:** 2026-08-28
 **Project dir:** `C:\Folders that need to be sorted\7 Projects\Compiler\PrimitiveReflexivity\` (new Lean 4 + Mathlib project — separate from the Moses/Porisis/DSIS trees, but same project owner and same record-keeping folder)
 **Objective:** Stand up a Lean 4 + Mathlib project from scratch and formally verify (zero `sorry`) the first-order logic (reflexivity axioms), arithmetic descent / prime-identity theorem, dual-axis geometric incommensurability theorems, and triadic-state / mediator-defect theorems from Jonathon's paper "Foundations of Primitive Reflexivity: The Discrete Node-First Ontology, Axis Incommensurability, and the Phase-Drift Definition of Angles."
-**Outcome:** Full success. `lake build` completes with 0 errors on all 12 theorems/lemmas. Independently confirmed via `#print axioms` on every theorem that the only axioms in play are Lean's standard trust base (`propext`, `Classical.choice`, `Quot.sound`) — no `sorryAx` anywhere, which is a stronger check than grepping the source for the literal word "sorry."
+**Outcome:** Full success. `lake build` completes with 0 errors on all 14 theorems/lemmas (12 from the original formalization pass, plus `group_inequivalence`/`real_not_equiv_circle` added per `Group_Inequivalence_Implementation_Brief.md` — see §2.3 and Theorems_Original_and_Adjustments.md §4). Independently confirmed via `#print axioms` on every theorem that the only axioms in play are Lean's standard trust base (`propext`, `Classical.choice`, `Quot.sound`) — no `sorryAx` anywhere, which is a stronger check than grepping the source for the literal word "sorry."
 
 ---
 
@@ -15,7 +15,8 @@
   - **Arithmetic descent / prime identity:** `DivSet`, `ArithmeticPerSeIdentity`, `prime_incompressibility` (iff between `Nat.Prime` and the divisor-set characterization).
   - **Dual-axis incommensurability:** `manhattan_step`/`diagonal_step`/`delta_gap`, `manhattan_is_rational`, `diagonal_is_irrational`, `no_common_rational_measure`, `delta_gap_pos`, `two_pi_irrational`, `period_incommensurability`.
   - **Triadic state / mediator defect:** `TriadicState` structure, `geometric_mean_bridge`, `mediator_defect`, `mediator_defect_positive`, `equipartition_fixed_point`.
-- **`PrimitiveReflexivity/AxiomCheck.lean`** — a verification-only file (`#print axioms` on all 12 theorems) built once to independently confirm the trust base, then unlinked from the default build target so the shipped deliverable is exactly `Foundations.lean` as requested. The file is still in the project directory and can be rebuilt on demand with `lake build PrimitiveReflexivity.AxiomCheck`.
+  - **Group inequivalence (added §2.3, below the original 12):** `group_inequivalence` (no bijection `ℝ ≃ Circle` respects both group structures — the unbundled torsion argument), `real_not_equiv_circle` (`(ℝ, +) ≇ U(1)`, the bundled `MulEquiv` corollary). Closes Theorem 3 Part 1 of the paper, which Part 2 (`period_incommensurability`, already in the original 12) had left uncovered.
+- **`PrimitiveReflexivity/AxiomCheck.lean`** — a verification-only file (`#print axioms` on all 14 theorems) built once to independently confirm the trust base, then unlinked from the default build target so the shipped deliverable is exactly `Foundations.lean` as requested. The file is still in the project directory and can be rebuilt on demand with `lake build PrimitiveReflexivity.AxiomCheck`.
 
 ---
 
@@ -41,6 +42,16 @@ Once the file actually compiled, it surfaced genuine problems in the supplied co
 
 None of these were style preferences — every one was a genuine compile error, confirmed by reading the actual Mathlib source (`grep`, not memory) before writing the replacement.
 
+### 2.3 Group inequivalence addendum — `map_mul` instance failure through a stripped `Equiv`
+Added later, per `Group_Inequivalence_Implementation_Brief.md`, to cover Theorem 3 Part 1 (`(ℝ, +) ≇ U(1)`), which the original 12-theorem pass had not included. `group_inequivalence` (unbundled torsion argument) compiled unchanged on the first attempt. Its bundled corollary, `real_not_equiv_circle`, did not:
+
+```
+error: ...Foundations.lean:181:12: failed to synthesize instance of type class
+  MulHomClass (Multiplicative ℝ ≃ Circle) (Multiplicative ℝ) Circle
+```
+
+**Cause:** the proof composed `g : Multiplicative ℝ ≃* Circle` into a plain `Equiv` via `Equiv.trans Multiplicative.ofAdd g.toEquiv` before trying `map_mul` — `.toEquiv` strips the `MulEquiv` bundling, so no `MulHomClass` instance is in scope for the composed function, even though `g` itself has one. **Fix:** `change`d the goal to its definitionally-equal form stated directly in terms of `g` (not the composed `Equiv`), then closed it with `map_mul` applied to `g` itself. Full before/after and the Lean style-linter note on `show` vs `change` are in `Theorems_Original_and_Adjustments.md` §4.
+
 ---
 
 ## 3. What Was Tested, and What the Results Mean
@@ -48,7 +59,7 @@ None of these were style preferences — every one was a genuine compile error, 
 ### 3.1 `lake build` on the default target
 Final build: **0 errors, 2 warnings** (a deprecated-lemma-name notice for `Set.mem_setOf_eq`, and a linter suggestion to merge two `intro` calls — both cosmetic, neither affects correctness). `Build completed successfully (2742 jobs)`.
 
-### 3.2 Independent axiom audit (`#print axioms`) on all 12 theorems/lemmas
+### 3.2 Independent axiom audit (`#print axioms`) on all 14 theorems/lemmas
 | Theorem | Axioms |
 |---|---|
 | `reflexive_minimality` | *(none)* |
@@ -63,6 +74,8 @@ Final build: **0 errors, 2 warnings** (a deprecated-lemma-name notice for `Set.m
 | `geometric_mean_bridge` | `propext`, `Classical.choice`, `Quot.sound` |
 | `mediator_defect_positive` | `propext`, `Classical.choice`, `Quot.sound` |
 | `equipartition_fixed_point` | `propext`, `Classical.choice`, `Quot.sound` |
+| `group_inequivalence` | `propext`, `Classical.choice`, `Quot.sound` |
+| `real_not_equiv_circle` | `propext`, `Classical.choice`, `Quot.sound` |
 
 All three axioms that appear are Lean/Mathlib's standard trust base — the same three nearly every nontrivial Mathlib theorem depends on (real numbers are built as a quotient of Cauchy sequences, which needs `Quot.sound`; classical real-number reasoning needs `Classical.choice`; `propext` is baseline for propositional extensionality). **`sorryAx` appears nowhere.** This is a stronger guarantee than grepping the source for the literal word "sorry," since it would also catch a `sorry` introduced through a macro or tactic that doesn't literally spell the word.
 
@@ -80,6 +93,7 @@ Files in `C:\Folders that need to be sorted\7 Projects\Compiler\PrimitiveReflexi
 - `lean-toolchain` — pins `leanprover/lean4:v4.33.1`.
 - `lakefile.toml` — pins `mathlib` to `rev = "v4.33.1"` under `leanprover-community` scope.
 - `2026-08-28_PrimitiveReflexivity_Lean4_Formalization.md` — copy of this build summary.
-- `Theorems_Original_and_Adjustments.md` — the theorem code as originally supplied, with every adjustment documented against it (see that file for the line-by-line diff and rationale).
+- `Theorems_Original_and_Adjustments.md` — the theorem code as originally supplied, with every adjustment documented against it (see that file for the line-by-line diff and rationale, including §4's group-inequivalence addendum).
+- `Group_Inequivalence_Implementation_Brief.md` — the brief that specified §2.3's addition; its own "known points of residual risk" section is worth comparing against what actually broke (§2.3 above).
 
 Not yet done / open items: none blocking. If future paper sections are formalized in this project, follow the same discipline used here — read the actual Mathlib source for a lemma's current name/signature before using it, rather than trusting a remembered API, since Mathlib's file layout and lemma names do shift between revisions.
