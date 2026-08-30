@@ -80,6 +80,16 @@ on every push.
   plus a note on what "verified" does and doesn't establish.
 - `lakefile.toml` / `lean-toolchain` — pin the exact Lean and Mathlib versions used.
 
+Two further directories extend this formalization in **bare Lean 4 — no
+Mathlib, no `lake build`, not part of the verification above**. Each has
+its own `README.md` documenting scope and verification tier:
+- `R3_bare_lean/` — Axiom R3 (A-Metric Independence) across metric, order,
+  and algebraic structural axes, plus the Section VI dual-clock
+  (`PhaseDriftMatch`) ontological angle definition.
+- `Section_VI_Incommensurability/` — a from-scratch (no Mathlib) proof that
+  the Polar and Axial clocks share no common rational measure, connected
+  directly to `PhaseDriftMatch`.
+
 ## License
 
 MIT — see [`LICENSE`](LICENSE).
