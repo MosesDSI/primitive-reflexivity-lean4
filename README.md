@@ -90,6 +90,13 @@ its own `README.md` documenting scope and verification tier:
   the Polar and Axial clocks share no common rational measure, connected
   directly to `PhaseDriftMatch`.
 
+A third directory, [`Theta__0_Photon/`](Theta__0_Photon/README.md), extends the
+`metric_independence` diagonal-collapse pattern above with its own Lean 4 + Mathlib
+project — same pinned toolchain and Mathlib revision as this repo — plus a real-valued
+statistical analogue (centered subspace / degrees-of-freedom, diagonal-subspace zero
+variance). See its own `README.md` for what's proved and what the parallel between the
+two does and doesn't establish.
+
 ## License
 
 MIT — see [`LICENSE`](LICENSE).
