@@ -1,0 +1,15 @@
+name = "Theta__0_Photon"
+version = "0.1.0"
+defaultTargets = ["theta__0_photon"]
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.33.1"
+
+[[lean_lib]]
+name = "Theta0Photon"
+
+[[lean_exe]]
+name = "theta__0_photon"
+root = "Main"
