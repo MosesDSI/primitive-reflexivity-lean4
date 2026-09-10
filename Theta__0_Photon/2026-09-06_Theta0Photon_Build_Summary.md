@@ -1,7 +1,7 @@
 # Theta0Photon Build Summary
 
 **Date:** 2026-09-06
-**Project:** `Theta__0_Photon`
+**Project:** `Theta__0_Photon` (subfolder of `PrimitiveReflexivity`)
 **Toolchain:** Lean 4 with the project-pinned toolchain
 
 ## Objective
@@ -166,7 +166,7 @@ lake env lean Main.lean
 
 There are no compilation errors and no `sorry` proofs were introduced.
 
-Lean reports stylistic warnings because `zeroProcess`, `Photon`, `Superposition`, and `EncryptedPacket` have proposition-valued types and are declared with `def`. These warnings do not indicate proof failures.
+Lean reports stylistic warnings because `zeroProcess`, `Photon`, `Superposition`, and `EncryptedPacket` have proposition-valued types and are declared with `def`. These warnings do not indicate proof failures. (Resolved in Part 2 below.)
 
 ## Meaning of the Result
 
@@ -367,3 +367,15 @@ this project's own build (not assumed from context):
 | `dist_eq_zero_iff_R` | `propext`, `Classical.choice`, `Quot.sound` |
 
 No `sorryAx`, no project-defined axioms, anywhere.
+
+## Follow-up: git structure
+
+`Theta__0_Photon` was discovered mid-session to have its own nested `.git`
+(one throwaway "Initial commit", no remote) — a side effect of pulling the
+`PrimitiveReflexivity` repo content into VS Code for agent context, not a
+deliberate `git init`. Per user decision, the nested `.git` was removed and
+`Theta__0_Photon` was folded into the outer `PrimitiveReflexivity` repo as
+a plain subfolder, consistent with `R3_bare_lean` and
+`Section_VI_Incommensurability`. Committed locally in `PrimitiveReflexivity`
+(`c9dcbc7`, message: "feat(statistics): verify diagonal zero-variance and
+strict off-diagonal metric theorems in Lean 4"); not pushed to any remote.
