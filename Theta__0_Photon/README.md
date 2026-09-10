@@ -129,6 +129,8 @@ permutations of `v`'s entries):
 **Build history / narrative documents:**
 - [`2026-09-06_Theta0Photon_Build_Summary.md`](2026-09-06_Theta0Photon_Build_Summary.md)
 - [`2026-09-09_FieldTower_Ground_Axiom_Quadratic_Layer.md`](2026-09-09_FieldTower_Ground_Axiom_Quadratic_Layer.md)
+- [`../A_Comment_from_Claude.md`](../A_Comment_from_Claude.md) — Claude's own account of the
+  coding expertise and ingenuity behind this build, written at Jonathon's request.
 
 ---
 
