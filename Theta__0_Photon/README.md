@@ -16,17 +16,26 @@ such point below, not silently assumed.
 ## Framework Overview
 
 The framework's central move — laid out in full in
-[`Theta0Photon/Documentation/CoreAxioms.md`](Theta0Photon/Documentation/CoreAxioms.md) —
-is to treat a natural number not as an atomic scalar but as a bundle of three
-components: `(n, √n, n²)`, read as a **polar coordinate** (the discrete count `n`), an
-**axial mediator** (the continuous scale `√n`), and a **planar boundary** (the
-potential/volumetric capacity `n²`). On that reading, the classical 1D natural number
-line is a lossy projection of this 3-component state space: it keeps `n` and discards
-the other two coordinates.
+[`Theta0Photon/Documentation/CoreAxioms.md`](Theta0Photon/Documentation/CoreAxioms.md),
+Section V, "Core Axioms: The Triadic Substrate and the Lossy Compression of Classical
+ℕ_classical" — is to define the natural numbers strictly as the full 3-component state:
 
-This is the framework's own stipulated definition, stated as such — it is not a claim
-that Mathlib's `Nat` is internally inconsistent or incomplete, and nothing in this
-repository asserts that. What *is* machine-checked, precisely, is:
+```
+ℕ ≡ { (n, √n, n²) | n ∈ ℕ_classical }
+```
+
+read as a **polar coordinate** (the discrete count `n`), an **axial mediator** (the
+continuous scale `√n`), and a **planar boundary** (the potential/volumetric capacity
+`n²`). `ℕ_classical` names Mathlib's own `Nat` in this notation — the indexing set the
+triadic bundle is built over. On this framework's own stipulated definition, `ℕ`
+(the full triadic state) and `ℕ_classical` (the bare count alone) are different objects,
+and the classical 1D natural number line is a lossy 1D projection of the 3D triadic
+manifold: it keeps `n` and discards the other two coordinates.
+
+This is the framework's own definition, stated as such — it is not a claim that
+`ℕ_classical` (Mathlib's `Nat`) is internally inconsistent or incomplete as *that* type,
+and nothing in this repository asserts that; `Nat.add` remains exactly what Mathlib
+defines it to be, untouched by anything here. What *is* machine-checked, precisely, is:
 
 - Bundling `n` with `√n` and `n²` (`TriadicNat`) preserves an exact, zero-residue
   relationship under componentwise **multiplication**, but not under componentwise
@@ -44,27 +53,28 @@ isn't claimed.
 
 ## Verification Ledger
 
-Every theorem below is machine-checked against `[propext, Classical.choice,
-Quot.sound]` (Lean's standard trust base) with **zero `sorry`**, confirmed via
-`#print axioms` at the time each file was built. Current full-library build: **`lake
-build Theta0Photon` — 2483/2483 jobs, clean** (re-confirmed at time of writing).
+Every theorem below is machine-checked with **zero `sorry`**, confirmed via `#print
+axioms` at the time each file was built (or re-confirmed at time of writing). Current
+full-library build: **`lake build Theta0Photon` and `lake build Main` — 2484/2484 jobs
+each, clean, zero warnings** (re-confirmed at time of writing).
 
-| File | Key results | Method |
-|---|---|---|
-| [`GroundAxiom.lean`](Theta0Photon/Algebra/GroundAxiom.lean) | `triadic_no_rational_root`, `triadic_ground_irreducible` — `X²−n` is irreducible over `ℚ` for any non-square `n` | `irreducible_of_degree_le_three_of_not_isRoot` + `Rat.sqrt_natCast` |
-| [`FieldTower.lean`](Theta0Photon/Algebra/FieldTower.lean) | `sqrt2_finrank`/`sqrt3_finrank` (degree 2 each), `sqrt3_notMem` (√3 ∉ ℚ⟮√2⟯), `sqrt2_sqrt3_finrank` — `[ℚ⟮√2,√3⟯:ℚ] = 4` | Explicit-basis route; `IntermediateField.algHomAdjoinIntegralEquiv`, tower law `finrank_mul_finrank` |
-| [`GaloisGroup.lean`](Theta0Photon/Algebra/GaloisGroup.lean) | `sigma_K`, `tau_K`, `phantom_middle := sigma_K.trans tau_K`; `card_Gal_eq_four`; `instance IsGalois ℚ K`; `instance IsKleinFour (K ≃ₐ[ℚ] K)`; `galoisKleinFourEquiv_phantom_middle` | Explicit `AlgEquiv` construction via `IntermediateField.equivOfEq` (avoiding the `AlgEquiv.refl` auto-closing pitfall — see file docstring); `IsGalois.of_card_aut_eq_finrank` |
-| [`ChiralSign.lean`](Theta0Photon/Geometry/ChiralSign.lean) | `chiral_sign_law` (= Mathlib's `Matrix.det_permute`, restated); `transposition_flips_orientation`; `canonicalOrbitMatrix_det = -21` reproved inside Lean's kernel | `Matrix.det_permute`, `Matrix.det_fin_three`, exhaustive `decide` over `S₃`'s 6 elements for `fin3_isOdd_iff_isSwap` |
-| [`Incommensurability.lean`](Theta0Photon/SetTheory/Incommensurability.lean) | `isEmpty_structurePreserving_of_operationallyOrthogonal` (general, any predicate); `isEmpty_equiv_K_real` — no bijection `K ≃ ℝ` exists, `K = ℚ⟮√2,√3⟯` from the field tower | Cardinality argument via `Function.Injective.countable`/`Uncountable`; `K`'s countability transported from `finrank ℚ K = 4` via `Module.finBasis` |
-| [`TriadicClosure.lean`](Theta0Photon/Algebra/TriadicClosure.lean) | `mediator_defect_positive` (re-derived from `PrimitiveReflexivity/Foundations.lean`, 2026-08-28); `triadic_multiplication_closed` (exact); `triadic_addition_not_closed`; `π`, `projection_commutes_on_n`, `correction_identity` | AM-GM-style squaring argument; `Real.sqrt_mul`; direct `rw`/`ring` on the exact correction quantity |
-| [`CoreAxioms.md`](Theta0Photon/Documentation/CoreAxioms.md) | Documentation module cross-referencing every theorem above to the framework's stated axioms, including an explicit scope note on what the `π` projection does and does not establish | — |
+| File | Key results | Method | Axiom trust base |
+|---|---|---|---|
+| [`GroundAxiom.lean`](Theta0Photon/Algebra/GroundAxiom.lean) | `triadic_no_rational_root`, `triadic_ground_irreducible` — `X²−n` is irreducible over `ℚ` for any non-square `n` | `irreducible_of_degree_le_three_of_not_isRoot` + `Rat.sqrt_natCast` | `[propext, Classical.choice, Quot.sound]` |
+| [`FieldTower.lean`](Theta0Photon/Algebra/FieldTower.lean) | `sqrt2_finrank`/`sqrt3_finrank` (degree 2 each), `sqrt3_notMem` (√3 ∉ ℚ⟮√2⟯), `sqrt2_sqrt3_finrank` — `[ℚ⟮√2,√3⟯:ℚ] = 4` | Explicit-basis route; `IntermediateField.algHomAdjoinIntegralEquiv`, tower law `finrank_mul_finrank` | `[propext, Classical.choice, Quot.sound]` |
+| [`GaloisGroup.lean`](Theta0Photon/Algebra/GaloisGroup.lean) | `sigma_K`, `tau_K`, `phantom_middle := sigma_K.trans tau_K`; `card_Gal_eq_four`; `instance IsGalois ℚ K`; `instance IsKleinFour (K ≃ₐ[ℚ] K)`; `galoisKleinFourEquiv_phantom_middle` | Explicit `AlgEquiv` construction via `IntermediateField.equivOfEq` (avoiding the `AlgEquiv.refl` auto-closing pitfall — see file docstring); `IsGalois.of_card_aut_eq_finrank` | `[propext, Classical.choice, Quot.sound]` |
+| [`ChiralSign.lean`](Theta0Photon/Geometry/ChiralSign.lean) | `chiral_sign_law` (= Mathlib's `Matrix.det_permute`, restated); `transposition_flips_orientation`; `canonicalOrbitMatrix_det = -21` reproved inside Lean's kernel | `Matrix.det_permute`, `Matrix.det_fin_three`, exhaustive `decide` over `S₃`'s 6 elements for `fin3_isOdd_iff_isSwap` | `[propext, Classical.choice, Quot.sound]` |
+| [`Incommensurability.lean`](Theta0Photon/SetTheory/Incommensurability.lean) | `isEmpty_structurePreserving_of_operationallyOrthogonal` (general, any predicate); `isEmpty_equiv_K_real` — no bijection `K ≃ ℝ` exists, `K = ℚ⟮√2,√3⟯` from the field tower | Cardinality argument via `Function.Injective.countable`/`Uncountable`; `K`'s countability transported from `finrank ℚ K = 4` via `Module.finBasis` | `[propext, Classical.choice, Quot.sound]` |
+| [`TriadicClosure.lean`](Theta0Photon/Algebra/TriadicClosure.lean) | `mediator_defect_positive` (re-derived from `PrimitiveReflexivity/Foundations.lean`, 2026-08-28); `triadic_multiplication_closed` (exact); `triadic_addition_not_closed`; `π`, `projection_commutes_on_n`, `correction_identity` | AM-GM-style squaring argument; `Real.sqrt_mul`; direct `rw`/`ring` on the exact correction quantity | `[propext, Classical.choice, Quot.sound]` |
+| [`UniquenessTest.lean`](Theta0Photon/Algebra/UniquenessTest.lean) | `const_one_multiplicative_closure`, `const_one_additive_residue`, `const_one_satisfies_both_conditions` — the constant function `f=1` satisfies exact multiplicative closure and strictly positive additive residue; flagged in the file itself as a degenerate, scale-collapsed case (no dependence on `n`, no operational scaling capacity), not a rival mediator to `√n` | `norm_num` | `[propext, Classical.choice, Quot.sound]` |
+| [`CoreAxioms.md`](Theta0Photon/Documentation/CoreAxioms.md) | Documentation module cross-referencing every theorem above to the framework's stated axioms, including an explicit scope note on what the `π` projection does and does not establish | — | — |
 
-**Not yet part of the built library:** `Theta0Photon/Algebra/UniquenessTest.lean`
-exists on disk (two counterexamples — a constant function and `n³` — to a since-revised
-claim about `√n`'s uniqueness among functions satisfying multiplicative closure plus a
-sign-definite additive residue) but is not yet wired into `Theta0Photon.lean` or
-included in this commit; it compiles standalone but hasn't been through the same
-`#print axioms` + full regression discipline as the files above.
+**A correction folded into this milestone:** `UniquenessTest.lean` originally also
+carried an `n³` "counterexample." That theorem in fact proved a strictly *negative*
+residue for `n³`, which is the opposite of the positive-residue condition being tested
+— it did not establish what the file claimed, and has been removed rather than left
+misdescribed. Only the constant-function result, which does satisfy the stated
+conditions literally, remains.
 
 ## The S₃ Trajectory Matrix Invariant
 
@@ -106,8 +116,9 @@ permutations of `v`'s entries):
 4. [`Theta0Photon/Geometry/ChiralSign.lean`](Theta0Photon/Geometry/ChiralSign.lean)
 5. [`Theta0Photon/SetTheory/Incommensurability.lean`](Theta0Photon/SetTheory/Incommensurability.lean)
 6. [`Theta0Photon/Algebra/TriadicClosure.lean`](Theta0Photon/Algebra/TriadicClosure.lean)
-7. [`Theta0Photon/Documentation/CoreAxioms.md`](Theta0Photon/Documentation/CoreAxioms.md) (documentation, not code)
-8. [`Theta0Photon/Basic.lean`](Theta0Photon/Basic.lean) / [`Theta0Photon/Statistics/CenteredKernel.lean`](Theta0Photon/Statistics/CenteredKernel.lean) — earlier, independent modules (see "What's proved" below)
+7. [`Theta0Photon/Algebra/UniquenessTest.lean`](Theta0Photon/Algebra/UniquenessTest.lean)
+8. [`Theta0Photon/Documentation/CoreAxioms.md`](Theta0Photon/Documentation/CoreAxioms.md) (documentation, not code)
+9. [`Theta0Photon/Basic.lean`](Theta0Photon/Basic.lean) / [`Theta0Photon/Statistics/CenteredKernel.lean`](Theta0Photon/Statistics/CenteredKernel.lean) — earlier, independent modules (see "What's proved" below)
 
 **Python verification scripts:**
 - [`../S3_Trajectory_Verification/verify_s3_trajectory_matrix.py`](../S3_Trajectory_Verification/verify_s3_trajectory_matrix.py)
