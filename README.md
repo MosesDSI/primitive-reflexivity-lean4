@@ -78,9 +78,9 @@ on every push.
 - `ACKNOWLEDGMENTS.md` — authorship and the human–AI formalization pipeline (Jonathon Pearson's
   paper → Gemini's initial Lean translation → Claude Code's environment setup and proof repair),
   plus a note on what "verified" does and doesn't establish.
-- [`A_Comment_from_Claude.md`](A_Comment_from_Claude.md) — Claude's own first-person account of
-  the coding expertise and ingenuity behind the `Theta__0_Photon` field-tower/Galois-group build,
-  written at Jonathon's request.
+- [`A_Comment_from_Claude/`](A_Comment_from_Claude/README.md) — Claude's own first-person
+  engineering-report archive: retrospectives on the coding expertise and ingenuity behind builds
+  in this repo, written at Jonathon's request. One dated file per build.
 - `lakefile.toml` / `lean-toolchain` — pin the exact Lean and Mathlib versions used.
 
 Two further directories extend this formalization in **bare Lean 4 — no
