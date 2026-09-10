@@ -107,3 +107,62 @@ instrumenting every construction with an independent check of what it actually
 does — which is exactly the discipline Jonathon's own framing of this work
 ("faithful to the request that the kernel be engaged at every point") is picking up
 on.
+
+---
+
+## Shortcuts and pitfalls for other Lean4/Mathlib coders
+
+Jonathon asked afterward whether any of this would actually help visitors — people
+navigating Lean4/Mathlib's density for their own projects, not just reading about
+this one. Here's that answer, kept as raw as I wrote it:
+
+Genuinely, yes — a few things from this build generalize well beyond this specific
+proof, the kind of thing that would've saved real time if I'd known them going in.
+Here's what I'd actually pull out as reusable lessons for someone navigating
+Lean4/Mathlib's density:
+
+**1. When you're building an `Equiv`/`AlgEquiv` via tactics, don't trust a green
+build — sanity-check the direction.** This is the biggest one. `rw` and several
+other tactics auto-try `rfl` afterward, and anything tagged `@[refl]` (like
+`AlgEquiv.refl`) will silently swallow a goal that happens to reduce to "X ≃ X" —
+even when you meant to construct a *specific nontrivial* equivalence. The compiler
+gives you nothing: no warning, no error. The generalizable habit: any time you build
+an isomorphism/equivalence by tactic manipulation rather than an explicit term,
+write one extra line that computes what it actually does on a concrete input and
+check that against what you intended.
+
+**2. `show` is an underused tool for "there's no lemma for this."** When I needed
+`finrank ℚ ↥(E.restrictScalars ℚ) = finrank ℚ ↥E` and no named Mathlib lemma
+existed for it, `show` (which only succeeds if the new goal is *definitionally*
+equal to the old one) confirmed the two sides were already the same thing under the
+hood — no lemma needed. Worth trying before spending time hunting Mathlib for a
+bridging lemma that may not exist because it doesn't need to.
+
+**3. Read Mathlib's source instead of guessing lemma names.**
+`basisOfLinearIndependentOfCardEqFinrank` (avoids a dependent-type reindexing
+headache) and `Module.Dual.finrank_ker_add_one_of_ne_zero` (the general
+rank-nullity theorem) were both found by opening the actual source file, not by
+autocomplete-guessing a plausible name. Mathlib's naming conventions are consistent
+enough to guess *close*, but "close" fails to compile — actually reading the file
+that defines the thing you need is often faster than three wrong guesses.
+
+**4. `#check @lemma` before applying anything with more than one argument.**
+Several lemmas here had a base field as an *explicit* first argument even though it
+reads naturally as something Lean should infer. `#check @lemma_name` shows the
+real elaborated signature before you burn a cycle on a misapplied argument.
+
+**5. `decide` doesn't work over `ℝ`.** The kernel can't evaluate real numbers
+computationally — `decide` on any goal involving real-number equality just fails or
+hangs. `norm_num`/`nlinarith` are the right tools there; this trips people up
+because `decide` works fine for `ℕ`/`Fin n` and the failure mode isn't always an
+obvious error message.
+
+**6. If an error cascade looks unrelated to what you just typed, suspect
+`autoImplicit`.** An unqualified name Lean doesn't recognize can silently become an
+implicit universe-polymorphic type variable instead of throwing "unknown
+identifier" — producing a pile of confusing downstream errors that look like
+they're about something else entirely.
+
+I think this helps visitors more than the narrower "what I personally built"
+framing of the rest of this doc — it's the kind of thing someone hits on their own
+first nontrivial Mathlib project and has no way to know in advance.
