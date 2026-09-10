@@ -129,8 +129,6 @@ permutations of `v`'s entries):
 **Build history / narrative documents:**
 - [`2026-09-06_Theta0Photon_Build_Summary.md`](2026-09-06_Theta0Photon_Build_Summary.md)
 - [`2026-09-09_FieldTower_Ground_Axiom_Quadratic_Layer.md`](2026-09-09_FieldTower_Ground_Axiom_Quadratic_Layer.md)
-- [`Every_Pure_Integer_Contains_an_Irrational_Component.md`](Every_Pure_Integer_Contains_an_Irrational_Component.md)
-- [`The_Classical_Statement_Deconstructed.md`](The_Classical_Statement_Deconstructed.md)
 
 ---
 
