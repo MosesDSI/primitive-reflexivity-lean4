@@ -1,3 +1,4 @@
 import PrimitiveReflexivity.Basic
 import PrimitiveReflexivity.Foundations
 import PrimitiveReflexivity.Geometry.SquareUnfolding
+import PrimitiveReflexivity.Discrete.HarmonicCenter

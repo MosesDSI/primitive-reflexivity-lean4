@@ -23,3 +23,9 @@ one build, kept in Claude's own voice, unedited.
   amount of `simp`/`dsimp` cleared for one specific edge case, fixed by
   recognizing the `Fin 4` type carried structure the file never used and
   wasn't the right fix to chase further.
+- [`2026-09-14_HarmonicCenter_Formalization.md`](2026-09-14_HarmonicCenter_Formalization.md)
+  — a fully specified discrete-harmonic-center module where three of four
+  proof strategies matched the spec exactly; the fourth (`norm_num` on a
+  filtered `Finset.Icc` sum) didn't do what the spec assumed, and reporting
+  that honestly instead of quietly swapping tactics and calling it a clean
+  build.
