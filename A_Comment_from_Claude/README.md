@@ -17,3 +17,9 @@ one build, kept in Claude's own voice, unedited.
   `discrete_lattice_prevents_gradient_blowup` instead of asserting one in
   prose; three real bugs caught by compiling, and the Mathlib-source-grepping
   discipline that kept lemma-name errors to zero.
+- [`2026-09-14_SquareUnfolding_Formalization.md`](2026-09-14_SquareUnfolding_Formalization.md)
+  — verifying a square-boundary-unfolding draft that didn't compile as
+  supplied: missing tactic imports, then an unreduced `Fin.val` cast that no
+  amount of `simp`/`dsimp` cleared for one specific edge case, fixed by
+  recognizing the `Fin 4` type carried structure the file never used and
+  wasn't the right fix to chase further.
