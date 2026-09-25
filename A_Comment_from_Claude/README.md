@@ -48,3 +48,14 @@ one build, kept in Claude's own voice, unedited.
   dominance argument entirely), and several real kernel-caught bugs
   including a wrong product sign in one of nine near-identical multiplication
   cases that wasn't visible by re-reading.
+- [`2026-09-24_OrderObstruction_Density_and_Integration.md`](2026-09-24_OrderObstruction_Density_and_Integration.md)
+  — the final roadmap step (density) and wiring the file into `lake build`
+  for the first time. Why "leverage below_s/above_s, use a midpoint" was as
+  misleading a hint as "norm sign decides transitivity" was two sessions
+  earlier, and what an arbitrary-gap density claim actually requires (a real
+  rate of convergence for the `step` map, built and proved from scratch);
+  finding that a margin formula doesn't mirror by symmetry between the two
+  dominance branches, caught by testing numbers before trying to prove
+  anything; and the same `grind`-can't-multiply-two-variables limitation
+  from the prior two sessions' notes, confirmed as a standing fact about
+  this toolchain rather than something to keep rediscovering.

@@ -1323,3 +1323,586 @@ end PrimitiveReflexivity.OrderObstruction
 #print axioms PrimitiveReflexivity.OrderObstruction.QS.pos_s_mul
 #print axioms PrimitiveReflexivity.OrderObstruction.QS.pos_mul_branch1_left
 #print axioms PrimitiveReflexivity.OrderObstruction.QS.mul_pos
+
+namespace PrimitiveReflexivity.OrderObstruction.QS
+
+theorem rat_num_den (a : Rat) : a * ((a.den:Int):Rat) = (a.num : Rat) := by
+  have h1 : Rat.divInt a.num (a.den : Int) = a := Rat.num_divInt_den a
+  have h2 : Rat.divInt a.num (a.den : Int) = (a.num : Rat) / ((a.den:Int) : Rat) :=
+    Rat.divInt_eq_div a.num a.den
+  rw [h2] at h1
+  have hden : ((a.den:Int):Rat) ≠ 0 := by
+    have := a.den_nz
+    exact_mod_cast this
+  have h3 : (a.num:Rat) / ((a.den:Int):Rat) * ((a.den:Int):Rat) = (a.num:Rat) :=
+    Rat.div_mul_cancel hden
+  rw [h1] at h3
+  exact h3
+
+theorem two_pow_ge (n : Nat) : (n : Rat) + 1 ≤ 2 ^ n := by
+  induction n with
+  | zero => grind
+  | succ k ih =>
+    have h2 : (2:Rat) ^ (k+1) = 2 * 2 ^ k := by grind
+    rw [h2]
+    grind
+
+theorem archimedean (delta : Rat) (hd : 0 < delta) : ∃ n : Nat, 1 < delta * 2 ^ n := by
+  refine ⟨delta.den, ?_⟩
+  have hnum_int_pos : (0:Int) < delta.num := by
+    have heq := rat_num_den delta
+    have hdenpos : (0:Rat) < ((delta.den:Int):Rat) := by
+      have := delta.den_pos
+      exact_mod_cast this
+    have hpos := Rat.mul_pos hd hdenpos
+    rw [heq] at hpos
+    exact_mod_cast hpos
+  have hnum_int : (1:Int) ≤ delta.num := hnum_int_pos
+  have hnum : (1:Rat) ≤ ((delta.num:Int):Rat) := by exact_mod_cast hnum_int
+  have hgrow := two_pow_ge delta.den
+  have step2 : delta * ((delta.den:Rat)+1) ≤ delta * 2 ^ delta.den :=
+    Rat.mul_le_mul_of_nonneg_left hgrow (Rat.le_of_lt hd)
+  have hcastden : ((delta.den:Int):Rat) = (delta.den:Rat) := by exact_mod_cast rfl
+  have heq2 : delta * ((delta.den:Rat)+1) = delta * (delta.den:Rat) + delta := by grind
+  rw [heq2] at step2
+  have heqn : delta * (delta.den:Rat) = ((delta.num:Int):Rat) := by
+    rw [← hcastden]; exact rat_num_den delta
+  rw [heqn] at step2
+  grind
+
+theorem step_gap_half (r : Rat) (h0 : 0 < r) (h : r * r < 2) :
+    2 * (2 - step r * step r) < 2 - r * r := by
+  have hmul : step r * (r + 2) = 2 * r + 2 := step_mul r (Rat.le_of_lt h0)
+  have hsq : (step r * step r) * ((r+2)*(r+2)) = (2*r+2)*(2*r+2) := by
+    have e : (step r * (r+2)) * (step r * (r+2)) = (step r * step r) * ((r+2)*(r+2)) := by grind
+    rw [← e, hmul]
+  have hpos : 0 < (r+2)*(r+2) := Rat.mul_pos (by grind) (by grind)
+  have key : (2 * (2 - step r * step r)) * ((r+2)*(r+2)) < (2 - r*r) * ((r+2)*(r+2)) := by
+    have expand : (2 * (2 - step r * step r)) * ((r+2)*(r+2))
+        = 2*2*((r+2)*(r+2)) - 2*((step r*step r)*((r+2)*(r+2))) := by grind
+    rw [expand, hsq]
+    have factored : (2 - r*r) * ((r+2)*(r+2)) - (2*2*((r+2)*(r+2)) - 2*((2*r+2)*(2*r+2)))
+        = r * (r+4) * (2 - r*r) := by grind
+    have hfactor_pos : 0 < r * (r+4) * (2 - r*r) := by
+      have t := Rat.mul_pos h0 (by grind : (0:Rat) < r + 4)
+      exact Rat.mul_pos t (by grind : (0:Rat) < 2 - r*r)
+    grind
+  exact (Rat.mul_lt_mul_right hpos).mp key
+
+theorem step_gap_half_above (r : Rat) (h0 : 0 ≤ r) (h : 2 < r * r) :
+    2 * (step r * step r - 2) < r * r - 2 := by
+  have hrpos : 0 < r := by
+    rcases Rat.le_iff_lt_or_eq.mp h0 with h' | h'
+    · exact h'
+    · exfalso; rw [← h'] at h; grind
+  have hmul : step r * (r + 2) = 2 * r + 2 := step_mul r h0
+  have hsq : (step r * step r) * ((r+2)*(r+2)) = (2*r+2)*(2*r+2) := by
+    have e : (step r * (r+2)) * (step r * (r+2)) = (step r * step r) * ((r+2)*(r+2)) := by grind
+    rw [← e, hmul]
+  have hpos : 0 < (r+2)*(r+2) := Rat.mul_pos (by grind) (by grind)
+  have key : (2 * (step r * step r - 2)) * ((r+2)*(r+2)) < (r*r - 2) * ((r+2)*(r+2)) := by
+    have expand : (2 * (step r * step r - 2)) * ((r+2)*(r+2))
+        = 2*((step r*step r)*((r+2)*(r+2))) - 2*2*((r+2)*(r+2)) := by grind
+    rw [expand, hsq]
+    have factored : (r*r - 2) * ((r+2)*(r+2)) - (2*((2*r+2)*(2*r+2)) - 2*2*((r+2)*(r+2)))
+        = r * (r+4) * (r*r - 2) := by grind
+    have hfactor_pos : 0 < r * (r+4) * (r*r - 2) := by
+      have t := Rat.mul_pos hrpos (by grind : (0:Rat) < r + 4)
+      exact Rat.mul_pos t (by grind : (0:Rat) < r*r - 2)
+    grind
+  exact (Rat.mul_lt_mul_right hpos).mp key
+
+def approxLo : Nat → Rat
+  | 0 => 1
+  | (n+1) => step (approxLo n)
+
+def approxHi : Nat → Rat
+  | 0 => 2
+  | (n+1) => step (approxHi n)
+
+theorem approxLo_bound (n : Nat) : 0 < approxLo n ∧ approxLo n * approxLo n < 2 := by
+  induction n with
+  | zero => show (0:Rat) < 1 ∧ (1:Rat)*1 < 2; exact ⟨by grind, by grind⟩
+  | succ k ih =>
+    obtain ⟨h1, h2⟩ := ih
+    have hb := step_below (approxLo k) h1 h2
+    show 0 < step (approxLo k) ∧ step (approxLo k) * step (approxLo k) < 2
+    exact ⟨by grind, hb.2⟩
+
+theorem approxHi_bound (n : Nat) : 0 ≤ approxHi n ∧ 2 < approxHi n * approxHi n := by
+  induction n with
+  | zero => show (0:Rat) ≤ 2 ∧ 2 < (2:Rat)*2; exact ⟨by grind, by grind⟩
+  | succ k ih =>
+    obtain ⟨h1, h2⟩ := ih
+    have hb := step_above (approxHi k) h1 h2
+    show 0 ≤ step (approxHi k) ∧ 2 < step (approxHi k) * step (approxHi k)
+    exact ⟨hb.2.1, hb.2.2⟩
+
+theorem approxLo_gap (n : Nat) : 2 - approxLo n * approxLo n ≤ (1/2:Rat)^n := by
+  induction n with
+  | zero => show (2:Rat) - 1*1 ≤ (1/2:Rat)^0; grind
+  | succ k ih =>
+    obtain ⟨h1, h2⟩ := approxLo_bound k
+    have hg := step_gap_half (approxLo k) h1 h2
+    show 2 - step (approxLo k) * step (approxLo k) ≤ (1/2:Rat)^(k+1)
+    have hpow : (1/2:Rat)^(k+1) = (1/2:Rat)^k / 2 := by grind
+    rw [hpow]
+    grind
+
+theorem approxHi_gap (n : Nat) : approxHi n * approxHi n - 2 ≤ 2 * (1/2:Rat)^n := by
+  induction n with
+  | zero => show (2:Rat)*2 - 2 ≤ 2 * (1/2:Rat)^0; grind
+  | succ k ih =>
+    obtain ⟨h1, h2⟩ := approxHi_bound k
+    have hg := step_gap_half_above (approxHi k) h1 h2
+    show step (approxHi k) * step (approxHi k) - 2 ≤ 2 * (1/2:Rat)^(k+1)
+    have hpow : (1/2:Rat)^(k+1) = (1/2:Rat)^k / 2 := by grind
+    rw [hpow]
+    grind
+
+
+theorem rat_mul_pow (a b : Rat) (n : Nat) : (a * b)^n = a^n * b^n := by
+  induction n with
+  | zero => grind
+  | succ k ih =>
+    have e1 : (a*b)^(k+1) = (a*b)^k * (a*b) := by grind
+    have e2 : a^(k+1) = a^k * a := by grind
+    have e3 : b^(k+1) = b^k * b := by grind
+    rw [e1, e2, e3, ih]
+    grind
+
+theorem rat_one_pow (n : Nat) : (1:Rat)^n = 1 := by
+  induction n with
+  | zero => exact Rat.pow_zero 1
+  | succ k ih =>
+    rw [Rat.pow_succ, ih]
+    grind
+
+theorem neg_pos_iff (x : Rat) : 0 < -x ↔ x < 0 := by
+  constructor
+  · intro h
+    rcases Rat.le_total (a := x) (b := 0) with h' | h'
+    · rcases Rat.le_iff_lt_or_eq.mp h' with h'' | h''
+      · exact h''
+      · exfalso; rw [h''] at h; grind
+    · exfalso
+      have := Rat.le_of_lt h
+      grind
+  · intro h
+    rcases Rat.le_total (a := 0) (b := -x) with h' | h'
+    · rcases Rat.le_iff_lt_or_eq.mp h' with h'' | h''
+      · exact h''
+      · exfalso; grind
+    · exfalso
+      have hxx : 0 ≤ x := by grind
+      grind
+
+theorem sq_pos_of_ne (c : Rat) (hc : c ≠ 0) : 0 < c * c := by
+  rcases Rat.le_total (a := c) (b := 0) with h | h
+  · rcases Rat.le_iff_lt_or_eq.mp h with h'|h'
+    · have := Rat.mul_pos (a := -c) (b := -c) (by grind) (by grind)
+      grind
+    · exfalso; exact hc h'
+  · rcases Rat.le_iff_lt_or_eq.mp h with h'|h'
+    · exact Rat.mul_pos h' h'
+    · exfalso; exact hc h'.symm
+
+theorem div_pos_of_pos_of_pos (p q : Rat) (hp : 0 < p) (hq : 0 < q) : 0 < p / q := by
+  rcases Rat.le_total (a := p/q) (b := 0) with h | h
+  · exfalso
+    have hqne : q ≠ 0 := by grind
+    have hc : (p/q)*q = p := Rat.div_mul_cancel hqne
+    have : (p/q)*q ≤ 0 := by
+      have := Rat.mul_nonneg (a := -(p/q)) (b := q) (by grind) (Rat.le_of_lt hq)
+      grind
+    grind
+  · rcases Rat.le_iff_lt_or_eq.mp h with h'|h'
+    · exact h'
+    · exfalso
+      have hqne : q ≠ 0 := by grind
+      have hc : (p/q)*q = p := Rat.div_mul_cancel hqne
+      rw [← h'] at hc; grind
+
+theorem approx_sandwich (b eps : Rat) (heps : 0 < eps) :
+    ∃ t : Rat, Pos (⟨t, -b⟩ : QS) ∧ Pos (⟨eps - t, b⟩ : QS) := by
+  rcases rat_trich b 0 with hb | hb | hb
+  · -- b < 0 : use approxLo, no case split needed
+    have hBpos : 0 < -b := by grind
+    have hbb_pos : 0 < b * b := sq_pos_of_ne b (by grind)
+    have hden_pos : (0:Rat) < 2*(b*b)+2 := by grind
+    have hepssq_pos : 0 < eps*eps := sq_pos_of_ne eps (by grind)
+    have hdelta_pos : 0 < eps*eps/(2*(b*b)+2) := div_pos_of_pos_of_pos _ _ hepssq_pos hden_pos
+    obtain ⟨n, hn⟩ := archimedean (eps*eps/(2*(b*b)+2)) hdelta_pos
+    obtain ⟨hL1, hL2⟩ := approxLo_bound n
+    have hgap : 2 - approxLo n * approxLo n ≤ (1/2:Rat)^n := approxLo_gap n
+    have ht_neg : b * approxLo n < 0 := by
+      have hprod : 0 < (-b) * approxLo n := Rat.mul_pos hBpos hL1
+      have heq : (-b) * approxLo n = -(b * approxLo n) := by grind
+      rw [heq] at hprod
+      exact (neg_pos_iff _).mp hprod
+    refine ⟨b * approxLo n, ?_, ?_⟩
+    · show Pos (⟨b * approxLo n, -b⟩ : QS)
+      refine Or.inr (Or.inr ⟨ht_neg, by grind, ?_⟩)
+      have hkey : (b * approxLo n) * (b * approxLo n) < 2 * ((-b)*(-b)) := by
+        have e : (b * approxLo n) * (b * approxLo n) = (b*b) * (approxLo n * approxLo n) := by
+          grind
+        have e2 : 2*((-b)*(-b)) = 2*(b*b) := by grind
+        rw [e, e2]
+        have := Rat.mul_lt_mul_of_pos_left hL2 hbb_pos
+        grind
+      exact hkey
+    · show Pos (⟨eps - b * approxLo n, b⟩ : QS)
+      refine Or.inr (Or.inl ⟨by grind, hb, ?_⟩)
+      have hpow_eq : (1/2:Rat)^n * 2^n = 1 := by
+        have hmulpow := rat_mul_pow (1/2:Rat) 2 n
+        have hbase : (1/2:Rat) * 2 = 1 := by grind
+        rw [hbase, rat_one_pow] at hmulpow
+        exact hmulpow.symm
+      have hstep1 : (1/2:Rat)^n < eps*eps/(2*(b*b)+2) := by
+        have h1 : (1:Rat) < (eps*eps/(2*(b*b)+2)) * 2^n := hn
+        have h2 : (1/2:Rat)^n * ((eps*eps/(2*(b*b)+2)) * 2^n)
+            = (eps*eps/(2*(b*b)+2)) * ((1/2:Rat)^n * 2^n) := by grind
+        have h3 : (1/2:Rat)^n * 1 < (1/2:Rat)^n * ((eps*eps/(2*(b*b)+2)) * 2^n) :=
+          Rat.mul_lt_mul_of_pos_left h1 (by grind : (0:Rat) < (1/2:Rat)^n)
+        rw [h2, hpow_eq] at h3
+        grind
+      have hbb_gap : (b*b) * (2 - approxLo n * approxLo n) ≤ (b*b) * (1/2:Rat)^n :=
+        Rat.mul_le_mul_of_nonneg_left hgap (Rat.le_of_lt hbb_pos)
+      have hbb_step : (b*b) * (1/2:Rat)^n < (b*b) * (eps*eps/(2*(b*b)+2)) :=
+        Rat.mul_lt_mul_of_pos_left hstep1 hbb_pos
+      have hdcancel : (eps*eps/(2*(b*b)+2)) * (2*(b*b)+2) = eps*eps :=
+        Rat.div_mul_cancel (by grind)
+      have hfrac_bound : (b*b) * (eps*eps/(2*(b*b)+2)) < eps*eps := by
+        have hlt : b*b < 2*(b*b)+2 := by grind
+        have hmul := (Rat.mul_lt_mul_left hdelta_pos).mpr hlt
+        rw [hdcancel] at hmul
+        grind
+      have hchain : (b*b) * (2 - approxLo n * approxLo n) < eps*eps := by
+        have s1 := hbb_gap
+        have s2 := hbb_step
+        have s3 := hfrac_bound
+        grind
+      have hexpand : (eps - b*approxLo n) * (eps - b*approxLo n)
+          = eps*eps - 2*eps*(b*approxLo n) + (b*b)*(approxLo n*approxLo n) := by grind
+      have hcross_pos : 0 < -(2*eps*(b*approxLo n)) := by
+        have := Rat.mul_pos heps (by grind : (0:Rat) < -(b*approxLo n))
+        grind
+      rw [hexpand]
+      grind
+  · -- b = 0
+    refine ⟨eps/2, ?_, ?_⟩
+    · show Pos (⟨eps/2, -b⟩ : QS)
+      refine Or.inl ⟨by grind, by grind, Or.inl ?_⟩
+      have : (0:Rat) < eps/2 := by
+        rcases Rat.le_total (a := eps/2) (b := 0) with h'|h'
+        · exfalso
+          have := Rat.mul_nonneg (a := -(eps/2)) (b := 2) (by grind) (by grind)
+          have hc : eps/2*2 = eps := Rat.div_mul_cancel (by grind)
+          grind
+        · rcases Rat.le_iff_lt_or_eq.mp h' with h''|h''
+          · exact h''
+          · exfalso
+            have hc : eps/2*2 = eps := Rat.div_mul_cancel (by grind)
+            rw [← h''] at hc; grind
+      exact this
+    · show Pos (⟨eps - eps/2, b⟩ : QS)
+      refine Or.inl ⟨by grind, by grind, Or.inl ?_⟩
+      have hc : eps/2*2 = eps := Rat.div_mul_cancel (by grind)
+      grind
+  · -- 0 < b : use approxHi, needs a case split on t vs eps for the upper bound
+    have hbb_pos : 0 < b * b := sq_pos_of_ne b (by grind)
+    have hden_pos : (0:Rat) < 2*(b*b)+2 := by grind
+    have hepssq_pos : 0 < eps*eps := sq_pos_of_ne eps (by grind)
+    have hdelta_pos : 0 < eps*eps/(2*(b*b)+2) := div_pos_of_pos_of_pos _ _ hepssq_pos hden_pos
+    obtain ⟨n, hn⟩ := archimedean (eps*eps/(2*(b*b)+2)) hdelta_pos
+    obtain ⟨hH1, hH2⟩ := approxHi_bound n
+    have hgap : approxHi n * approxHi n - 2 ≤ 2 * (1/2:Rat)^n := approxHi_gap n
+    refine ⟨b * approxHi n, ?_, ?_⟩
+    · show Pos (⟨b * approxHi n, -b⟩ : QS)
+      have ht_nonneg : 0 ≤ b * approxHi n := Rat.mul_nonneg (Rat.le_of_lt hb) hH1
+      refine Or.inr (Or.inl ⟨ht_nonneg, by grind, ?_⟩)
+      have hkey : 2 * ((-b)*(-b)) < (b * approxHi n) * (b * approxHi n) := by
+        have e : (b * approxHi n) * (b * approxHi n) = (b*b) * (approxHi n * approxHi n) := by
+          grind
+        have e2 : 2*((-b)*(-b)) = 2*(b*b) := by grind
+        rw [e, e2]
+        have := Rat.mul_lt_mul_of_pos_left hH2 hbb_pos
+        grind
+      exact hkey
+    · show Pos (⟨eps - b * approxHi n, b⟩ : QS)
+      rcases Rat.le_total (a := b * approxHi n) (b := eps) with hcase | hcase
+      · -- t ≤ eps : branch1, no precision needed
+        refine Or.inl ⟨by grind, by grind, Or.inr hb⟩
+      · rcases Rat.le_iff_lt_or_eq.mp hcase with hlt | heq
+        · -- eps < t : branch3, needs the precision argument
+          refine Or.inr (Or.inr ⟨by grind, by grind, ?_⟩)
+          have hpow_eq : (1/2:Rat)^n * 2^n = 1 := by
+            have hmulpow := rat_mul_pow (1/2:Rat) 2 n
+            have hbase : (1/2:Rat) * 2 = 1 := by grind
+            rw [hbase, rat_one_pow] at hmulpow
+            exact hmulpow.symm
+          have hstep1 : (1/2:Rat)^n < eps*eps/(2*(b*b)+2) := by
+            have h1 : (1:Rat) < (eps*eps/(2*(b*b)+2)) * 2^n := hn
+            have h2 : (1/2:Rat)^n * ((eps*eps/(2*(b*b)+2)) * 2^n)
+                = (eps*eps/(2*(b*b)+2)) * ((1/2:Rat)^n * 2^n) := by grind
+            have h3 : (1/2:Rat)^n * 1 < (1/2:Rat)^n * ((eps*eps/(2*(b*b)+2)) * 2^n) :=
+              Rat.mul_lt_mul_of_pos_left h1 (by grind : (0:Rat) < (1/2:Rat)^n)
+            rw [h2, hpow_eq] at h3
+            grind
+          have hbb_gap : (b*b) * (approxHi n * approxHi n - 2) ≤ (b*b) * (2 * (1/2:Rat)^n) :=
+            Rat.mul_le_mul_of_nonneg_left hgap (Rat.le_of_lt hbb_pos)
+          have hbb_step : (b*b) * (2 * (1/2:Rat)^n) < (b*b) * (2 * (eps*eps/(2*(b*b)+2))) := by
+            have h2x : (0:Rat) < 2 * (1/2:Rat)^n := by grind
+            have hstep2 : 2 * (1/2:Rat)^n < 2 * (eps*eps/(2*(b*b)+2)) := by
+              have := hstep1; grind
+            exact Rat.mul_lt_mul_of_pos_left hstep2 hbb_pos
+          have hdcancel : (eps*eps/(2*(b*b)+2)) * (2*(b*b)+2) = eps*eps :=
+            Rat.div_mul_cancel (by grind)
+          have hfrac_bound : (b*b) * (2 * (eps*eps/(2*(b*b)+2))) < eps*eps := by
+            have hlt : 2*(b*b) < 2*(b*b)+2 := by grind
+            have hmul := (Rat.mul_lt_mul_left hdelta_pos).mpr hlt
+            rw [hdcancel] at hmul
+            grind
+          have hchain : (b*b) * (approxHi n * approxHi n - 2) < eps*eps := by
+            have s1 := hbb_gap
+            have s2 := hbb_step
+            have s3 := hfrac_bound
+            grind
+          have hexpand : (eps - b*approxHi n) * (eps - b*approxHi n)
+              = eps*eps - 2*eps*(b*approxHi n) + (b*b)*(approxHi n*approxHi n) := by grind
+          have ht_sq : (b*approxHi n)*(b*approxHi n) = (b*b)*(approxHi n*approxHi n) := by grind
+          have htarget : (b*b)*(approxHi n*approxHi n) < eps*eps + 2*(b*b) := by
+            have := hchain; grind
+          have hepslt : eps*eps < eps*(b*approxHi n) :=
+            Rat.mul_lt_mul_of_pos_left hlt heps
+          rw [hexpand]
+          have s1 := htarget
+          have s2 := hepslt
+          grind
+        · -- eps = t exactly : falls back to branch1
+          refine Or.inl ⟨by grind, by grind, Or.inr hb⟩
+
+
+theorem pos_margin (z : QS) (hz : Pos z) : ∃ eps : Rat, 0 < eps ∧ Pos (⟨z.a - eps, z.b⟩ : QS) := by
+  rcases hz with h | h | h
+  · obtain ⟨h1, h2, hor⟩ := h
+    rcases hor with hor | hor
+    · refine ⟨z.a / 2, ?_, ?_⟩
+      · rcases Rat.le_iff_lt_or_eq.mp (by grind : (0:Rat) ≤ z.a) with h'|h'
+        · exact by grind
+        · exfalso; rw [← h'] at hor; grind
+      · show Pos (⟨z.a - z.a/2, z.b⟩ : QS)
+        refine Or.inl ⟨by grind, h2, Or.inl ?_⟩
+        have hd : z.a/2*2 = z.a := Rat.div_mul_cancel (by grind)
+        grind
+    · refine ⟨z.a + z.b/2, ?_, ?_⟩
+      · have : (0:Rat) < z.b/2 := by
+          have hd : z.b/2*2 = z.b := Rat.div_mul_cancel (by grind)
+          rcases Rat.le_iff_lt_or_eq.mp (by grind : (0:Rat) ≤ z.b/2) with h'|h'
+          · exact h'
+          · exfalso; rw [← h'] at hd; grind
+        grind
+      · show Pos (⟨z.a - (z.a+z.b/2), z.b⟩ : QS)
+        have he : z.a - (z.a+z.b/2) = -(z.b/2) := by grind
+        rw [he]
+        refine Or.inr (Or.inr ⟨by grind, h2, ?_⟩)
+        have hd : z.b/2*2 = z.b := Rat.div_mul_cancel (by grind)
+        have hzbsq : 0 < z.b*z.b := sq_pos_of_ne z.b (by grind)
+        grind
+  · -- branch2 (a-dominant): eps := (a^2-2b^2)/(2a)
+    obtain ⟨ha, hb, hsq⟩ := h
+    have hane : z.a ≠ 0 := by
+      intro he0
+      rw [he0] at hsq
+      have hbb : (0:Rat) ≤ z.b*z.b := sq_nonneg z.b
+      grind
+    have ha_pos : 0 < z.a := by
+      rcases Rat.le_iff_lt_or_eq.mp ha with h'|h'
+      · exact h'
+      · exfalso; exact hane h'.symm
+    have hM : 0 < z.a*z.a - 2*(z.b*z.b) := by grind
+    have ha2 : (0:Rat) < 2*z.a := by grind
+    have ha2ne : (2*z.a:Rat) ≠ 0 := by grind
+    have hcancel : ((z.a*z.a - 2*(z.b*z.b)) / (2*z.a)) * (2*z.a) = z.a*z.a - 2*(z.b*z.b) :=
+      Rat.div_mul_cancel ha2ne
+    have heps_pos : 0 < (z.a*z.a - 2*(z.b*z.b)) / (2*z.a) := by
+      rcases Rat.le_total (a := (z.a*z.a - 2*(z.b*z.b)) / (2*z.a)) (b := 0) with hle | hle
+      · exfalso
+        have hnn : 0 ≤ -((z.a*z.a - 2*(z.b*z.b)) / (2*z.a)) := by grind
+        have := Rat.mul_nonneg hnn (Rat.le_of_lt ha2)
+        grind
+      · rcases Rat.le_iff_lt_or_eq.mp hle with h'|h'
+        · exact h'
+        · exfalso; rw [← h'] at hcancel; grind
+    refine ⟨(z.a*z.a - 2*(z.b*z.b)) / (2*z.a), heps_pos, ?_⟩
+    have hnum : (z.a - (z.a*z.a - 2*(z.b*z.b)) / (2*z.a)) * (2*z.a)
+        = z.a*(2*z.a) - (z.a*z.a-2*(z.b*z.b)) := by
+      have e : (z.a - (z.a*z.a - 2*(z.b*z.b)) / (2*z.a)) * (2*z.a)
+          = z.a*(2*z.a) - ((z.a*z.a - 2*(z.b*z.b)) / (2*z.a))*(2*z.a) := by grind
+      rw [e, hcancel]
+    have hval : z.a - (z.a*z.a - 2*(z.b*z.b)) / (2*z.a) = (z.a*z.a + 2*(z.b*z.b)) / (2*z.a) := by
+      have hd : ((z.a*z.a+2*(z.b*z.b))/(2*z.a)) * (2*z.a) = z.a*z.a+2*(z.b*z.b) :=
+        Rat.div_mul_cancel ha2ne
+      have heq2 : (z.a - (z.a*z.a - 2*(z.b*z.b)) / (2*z.a)) * (2*z.a)
+          = ((z.a*z.a+2*(z.b*z.b))/(2*z.a)) * (2*z.a) := by
+        rw [hd]; grind
+      have hL : (z.a - (z.a*z.a - 2*(z.b*z.b)) / (2*z.a)) * (2*z.a) / (2*z.a)
+          = z.a - (z.a*z.a - 2*(z.b*z.b)) / (2*z.a) := Rat.mul_div_cancel ha2ne
+      have hR : ((z.a*z.a+2*(z.b*z.b))/(2*z.a)) * (2*z.a) / (2*z.a)
+          = (z.a*z.a+2*(z.b*z.b))/(2*z.a) := Rat.mul_div_cancel ha2ne
+      rw [← hL, ← hR, heq2]
+    show Pos (⟨z.a - (z.a*z.a - 2*(z.b*z.b)) / (2*z.a), z.b⟩ : QS)
+    rw [hval]
+    have hnn_final : 0 ≤ (z.a*z.a + 2*(z.b*z.b)) / (2*z.a) := by
+      have hnpos : 0 < z.a*z.a + 2*(z.b*z.b) := by
+        have := sq_nonneg z.b
+        have := Rat.mul_pos ha_pos ha_pos
+        grind
+      exact Rat.le_of_lt (div_pos_of_pos_of_pos _ _ hnpos ha2)
+    refine Or.inr (Or.inl ⟨hnn_final, hb, ?_⟩)
+    have hD2 : (0:Rat) < (2*z.a)*(2*z.a) := Rat.mul_pos ha2 ha2
+    have key : (2*(z.b*z.b)) * ((2*z.a)*(2*z.a)) <
+        ((z.a*z.a+2*(z.b*z.b)) / (2*z.a)) * ((z.a*z.a+2*(z.b*z.b)) / (2*z.a)) * ((2*z.a)*(2*z.a)) := by
+      have e1 : ((z.a*z.a+2*(z.b*z.b)) / (2*z.a)) * ((z.a*z.a+2*(z.b*z.b)) / (2*z.a)) * ((2*z.a)*(2*z.a))
+          = (((z.a*z.a+2*(z.b*z.b)) / (2*z.a)) * (2*z.a))
+            * (((z.a*z.a+2*(z.b*z.b)) / (2*z.a)) * (2*z.a)) := by grind
+      rw [e1]
+      have hd : ((z.a*z.a+2*(z.b*z.b))/(2*z.a)) * (2*z.a) = z.a*z.a+2*(z.b*z.b) :=
+        Rat.div_mul_cancel ha2ne
+      rw [hd]
+      have hsq2 : (0:Rat) < (z.a*z.a-2*(z.b*z.b))*(z.a*z.a-2*(z.b*z.b)) := Rat.mul_pos hM hM
+      have hident : (z.a*z.a+2*(z.b*z.b))*(z.a*z.a+2*(z.b*z.b))
+          - (2*(z.b*z.b))*((2*z.a)*(2*z.a)) = (z.a*z.a-2*(z.b*z.b))*(z.a*z.a-2*(z.b*z.b)) := by
+        grind
+      grind
+    exact (Rat.mul_lt_mul_right hD2).mp key
+  · -- branch3 (b-dominant): eps := (2b^2-a^2)/(4b)
+    obtain ⟨ha, hb, hsq⟩ := h
+    have hbne : z.b ≠ 0 := by
+      intro he0
+      rw [he0] at hsq
+      have haa : (0:Rat) ≤ z.a*z.a := sq_nonneg z.a
+      grind
+    have hb_pos : 0 < z.b := by
+      rcases Rat.le_iff_lt_or_eq.mp hb with h'|h'
+      · exact h'
+      · exfalso; exact hbne h'.symm
+    have hM : 0 < 2*(z.b*z.b) - z.a*z.a := by grind
+    have hb4 : (0:Rat) < 4*z.b := by grind
+    have hb4ne : (4*z.b:Rat) ≠ 0 := by grind
+    have hcancel : ((2*(z.b*z.b) - z.a*z.a) / (4*z.b)) * (4*z.b) = 2*(z.b*z.b) - z.a*z.a :=
+      Rat.div_mul_cancel hb4ne
+    have heps_pos : 0 < (2*(z.b*z.b) - z.a*z.a) / (4*z.b) := by
+      rcases Rat.le_total (a := (2*(z.b*z.b) - z.a*z.a) / (4*z.b)) (b := 0) with hle | hle
+      · exfalso
+        have hnn : 0 ≤ -((2*(z.b*z.b) - z.a*z.a) / (4*z.b)) := by grind
+        have := Rat.mul_nonneg hnn (Rat.le_of_lt hb4)
+        grind
+      · rcases Rat.le_iff_lt_or_eq.mp hle with h'|h'
+        · exact h'
+        · exfalso; rw [← h'] at hcancel; grind
+    refine ⟨(2*(z.b*z.b) - z.a*z.a) / (4*z.b), heps_pos, ?_⟩
+    have hnum : (z.a - (2*(z.b*z.b) - z.a*z.a) / (4*z.b)) * (4*z.b)
+        = z.a*(4*z.b) - (2*(z.b*z.b)-z.a*z.a) := by
+      have e : (z.a - (2*(z.b*z.b) - z.a*z.a) / (4*z.b)) * (4*z.b)
+          = z.a*(4*z.b) - ((2*(z.b*z.b) - z.a*z.a) / (4*z.b))*(4*z.b) := by grind
+      rw [e, hcancel]
+    have hval : z.a - (2*(z.b*z.b) - z.a*z.a) / (4*z.b)
+        = (z.a*(4*z.b) - (2*(z.b*z.b)-z.a*z.a)) / (4*z.b) := by
+      have hd : ((z.a*(4*z.b) - (2*(z.b*z.b)-z.a*z.a))/(4*z.b)) * (4*z.b)
+          = z.a*(4*z.b) - (2*(z.b*z.b)-z.a*z.a) := Rat.div_mul_cancel hb4ne
+      have heq2 : (z.a - (2*(z.b*z.b) - z.a*z.a) / (4*z.b)) * (4*z.b)
+          = ((z.a*(4*z.b) - (2*(z.b*z.b)-z.a*z.a))/(4*z.b)) * (4*z.b) := by
+        rw [hd]; grind
+      have hL : (z.a - (2*(z.b*z.b) - z.a*z.a) / (4*z.b)) * (4*z.b) / (4*z.b)
+          = z.a - (2*(z.b*z.b) - z.a*z.a) / (4*z.b) := Rat.mul_div_cancel hb4ne
+      have hR : ((z.a*(4*z.b) - (2*(z.b*z.b)-z.a*z.a))/(4*z.b)) * (4*z.b) / (4*z.b)
+          = (z.a*(4*z.b) - (2*(z.b*z.b)-z.a*z.a))/(4*z.b) := Rat.mul_div_cancel hb4ne
+      rw [← hL, ← hR, heq2]
+    show Pos (⟨z.a - (2*(z.b*z.b) - z.a*z.a) / (4*z.b), z.b⟩ : QS)
+    rw [hval]
+    refine Or.inr (Or.inr ⟨by grind, hb, ?_⟩)
+    have hD2 : (0:Rat) < (4*z.b)*(4*z.b) := Rat.mul_pos hb4 hb4
+    have key : ((z.a*(4*z.b) - (2*(z.b*z.b)-z.a*z.a)) / (4*z.b))
+        * ((z.a*(4*z.b) - (2*(z.b*z.b)-z.a*z.a)) / (4*z.b)) * ((4*z.b)*(4*z.b))
+        < (2*(z.b*z.b)) * ((4*z.b)*(4*z.b)) := by
+      have e1 : ((z.a*(4*z.b) - (2*(z.b*z.b)-z.a*z.a)) / (4*z.b))
+          * ((z.a*(4*z.b) - (2*(z.b*z.b)-z.a*z.a)) / (4*z.b)) * ((4*z.b)*(4*z.b))
+          = (((z.a*(4*z.b) - (2*(z.b*z.b)-z.a*z.a)) / (4*z.b)) * (4*z.b))
+            * (((z.a*(4*z.b) - (2*(z.b*z.b)-z.a*z.a)) / (4*z.b)) * (4*z.b)) := by grind
+      rw [e1]
+      have hd : ((z.a*(4*z.b) - (2*(z.b*z.b)-z.a*z.a))/(4*z.b)) * (4*z.b)
+          = z.a*(4*z.b) - (2*(z.b*z.b)-z.a*z.a) := Rat.div_mul_cancel hb4ne
+      rw [hd]
+      have hsos : (z.a+4*z.b)*(z.a+4*z.b) - 2*(z.b*z.b)
+          = (2*(z.b*z.b)-z.a*z.a) + 2*((z.a+2*z.b)*(z.a+2*z.b)) + 4*(z.b*z.b) := by grind
+      have hquad : 0 < (z.a+4*z.b)*(z.a+4*z.b) - 2*(z.b*z.b) := by
+        rw [hsos]
+        have t2 : (0:Rat) ≤ (z.a+2*z.b)*(z.a+2*z.b) := by
+          rcases Rat.le_total (a := (0:Rat)) (b := z.a+2*z.b) with h'|h'
+          · exact Rat.mul_nonneg h' h'
+          · have h'' : 0 ≤ -(z.a+2*z.b) := by grind
+            have := Rat.mul_nonneg h'' h''
+            grind
+        have t3 : (0:Rat) < 4*(z.b*z.b) := by
+          have := Rat.mul_pos hb_pos hb_pos; grind
+        grind
+      have hfact : (2*(z.b*z.b))*((4*z.b)*(4*z.b))
+          - (z.a*(4*z.b) - (2*(z.b*z.b)-z.a*z.a)) * (z.a*(4*z.b) - (2*(z.b*z.b)-z.a*z.a))
+          = (2*(z.b*z.b) - z.a*z.a) * ((z.a+4*z.b)*(z.a+4*z.b) - 2*(z.b*z.b)) := by
+        grind
+      have hprod : 0 < (2*(z.b*z.b) - z.a*z.a) * ((z.a+4*z.b)*(z.a+4*z.b) - 2*(z.b*z.b)) :=
+        Rat.mul_pos hM hquad
+      grind
+    exact (Rat.mul_lt_mul_right hD2).mp key
+
+theorem qs_dense (x y : QS) (h : x < y) : ∃ q : Rat, x < emb q ∧ emb q < y := by
+  have hz : Pos (⟨y.a - x.a, y.b - x.b⟩ : QS) := h
+  obtain ⟨eps, heps, hmargin⟩ := pos_margin (⟨y.a - x.a, y.b - x.b⟩ : QS) hz
+  obtain ⟨t, ht1, ht2⟩ := approx_sandwich x.b eps heps
+  refine ⟨x.a + t, ?_, ?_⟩
+  · show Pos (⟨x.a + t - x.a, 0 - x.b⟩ : QS)
+    have he : x.a + t - x.a = t := by grind
+    have he2 : (0:Rat) - x.b = -x.b := by grind
+    rw [he, he2]
+    exact ht1
+  · have hlt1 : Pos (⟨x.a + eps - (x.a+t), x.b - 0⟩ : QS) := by
+      have he : x.a + eps - (x.a+t) = eps - t := by grind
+      have he2 : x.b - (0:Rat) = x.b := by grind
+      rw [he, he2]
+      exact ht2
+    have hlt2 : Pos (⟨y.a - (x.a+eps), y.b - x.b⟩ : QS) := by
+      have he : y.a - (x.a+eps) = (y.a - x.a) - eps := by grind
+      rw [he]
+      exact hmargin
+    have hsum := pos_add (⟨x.a+eps-(x.a+t), x.b - 0⟩ : QS) (⟨y.a-(x.a+eps), y.b-x.b⟩ : QS) hlt1 hlt2
+    show Pos (⟨y.a - (x.a+t), y.b - 0⟩ : QS)
+    have ea : (x.a+eps-(x.a+t)) + (y.a-(x.a+eps)) = y.a - (x.a+t) := by grind
+    have eb : (x.b-0) + (y.b-x.b) = y.b - (0:Rat) := by grind
+    rw [ea, eb] at hsum
+    exact hsum
+
+theorem incommensurability_blocks_retraction :
+    ¬ ∃ f : QS → Rat, (∀ x y, x < y → f x ≤ f y) ∧ (∀ q, f (emb q) = q) :=
+  no_order_retraction_Qsqrt2
+
+end PrimitiveReflexivity.OrderObstruction.QS
+
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.rat_num_den
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.two_pow_ge
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.archimedean
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.step_gap_half
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.step_gap_half_above
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.approxLo_bound
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.approxHi_bound
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.approxLo_gap
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.approxHi_gap
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.rat_mul_pow
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.rat_one_pow
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.neg_pos_iff
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.sq_pos_of_ne
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.div_pos_of_pos_of_pos
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.approx_sandwich
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.pos_margin
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.qs_dense
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.incommensurability_blocks_retraction
