@@ -38,3 +38,13 @@ one build, kept in Claude's own voice, unedited.
   needs — no Mathlib field-division automation available, just the same
   `Rat.div_mul_cancel`/`Rat.mul_div_cancel` clearing already used elsewhere
   in the file.
+- [`2026-09-24_OrderObstruction_QS_Field_Order_Complete.md`](2026-09-24_OrderObstruction_QS_Field_Order_Complete.md)
+  — completing the QS roadmap (field laws, global trichotomy, transitivity,
+  order compatibility): why transitivity needed more than the roadmap's own
+  "norm sign decides it" framing (positivity closed under addition, proved
+  via two pure polynomial identities with no `√2` term ever written), why
+  multiplication turned out easier than feared (a decomposition into
+  positive-scalar and positive-scalar-times-`√2` terms sidesteps the
+  dominance argument entirely), and several real kernel-caught bugs
+  including a wrong product sign in one of nine near-identical multiplication
+  cases that wasn't visible by re-reading.

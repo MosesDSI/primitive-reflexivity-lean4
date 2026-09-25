@@ -471,6 +471,808 @@ theorem mul_inv_cancel (x : QS) (hx : x ≠ 0) : x * x⁻¹ = 1 := by
          x.a * (-x.b / norm x) + x.b * (x.a / norm x)⟩ : QS) = (⟨1, 0⟩ : QS)
   rw [hfst, hsnd]
 
+/-! ## Roadmap Step 3: multiplicative and distributive field laws. -/
+
+theorem mul_assoc (x y z : QS) : (x * y) * z = x * (y * z) := by
+  show (⟨(x.a*y.a+2*(x.b*y.b))*z.a+2*((x.a*y.b+x.b*y.a)*z.b),
+         (x.a*y.a+2*(x.b*y.b))*z.b+(x.a*y.b+x.b*y.a)*z.a⟩ : QS)
+      = ⟨x.a*(y.a*z.a+2*(y.b*z.b))+2*(x.b*(y.a*z.b+y.b*z.a)),
+         x.a*(y.a*z.b+y.b*z.a)+x.b*(y.a*z.a+2*(y.b*z.b))⟩
+  congr 1 <;> grind
+
+theorem mul_comm (x y : QS) : x * y = y * x := by
+  show (⟨x.a*y.a+2*(x.b*y.b), x.a*y.b+x.b*y.a⟩ : QS)
+      = ⟨y.a*x.a+2*(y.b*x.b), y.a*x.b+y.b*x.a⟩
+  congr 1 <;> grind
+
+theorem one_mul (x : QS) : (1 : QS) * x = x := by
+  show (⟨1*x.a+2*(0*x.b), 1*x.b+0*x.a⟩ : QS) = x
+  congr 1 <;> grind
+
+theorem mul_one (x : QS) : x * (1 : QS) = x := by
+  show (⟨x.a*1+2*(x.b*0), x.a*0+x.b*1⟩ : QS) = x
+  congr 1 <;> grind
+
+theorem left_distrib (x y z : QS) : x * (y + z) = x * y + x * z := by
+  show (⟨x.a*(y.a+z.a)+2*(x.b*(y.b+z.b)), x.a*(y.b+z.b)+x.b*(y.a+z.a)⟩ : QS)
+      = ⟨(x.a*y.a+2*(x.b*y.b))+(x.a*z.a+2*(x.b*z.b)), (x.a*y.b+x.b*y.a)+(x.a*z.b+x.b*z.a)⟩
+  congr 1 <;> grind
+
+theorem right_distrib (x y z : QS) : (x + y) * z = x * z + y * z := by
+  show (⟨(x.a+y.a)*z.a+2*((x.b+y.b)*z.b), (x.a+y.a)*z.b+(x.b+y.b)*z.a⟩ : QS)
+      = ⟨(x.a*z.a+2*(x.b*z.b))+(y.a*z.a+2*(y.b*z.b)), (x.a*z.b+x.b*z.a)+(y.a*z.b+y.b*z.a)⟩
+  congr 1 <;> grind
+
+/-! ## Roadmap Step 5 (order-addition compatibility; proved here since it needs
+    no positivity-closure machinery, unlike transitivity below). -/
+
+theorem add_lt_add_left (x y z : QS) (h : x < y) : z + x < z + y := by
+  show Pos (⟨(z.a + y.a) - (z.a + x.a), (z.b + y.b) - (z.b + x.b)⟩ : QS)
+  have e1 : (z.a + y.a) - (z.a + x.a) = y.a - x.a := by grind
+  have e2 : (z.b + y.b) - (z.b + x.b) = y.b - x.b := by grind
+  rw [e1, e2]
+  exact h
+
+/-! ## Roadmap Step 4: trichotomy for arbitrary elements.
+
+    A single QS element's sign (Pos z ∨ z = 0 ∨ Pos(-z)) is decided by cases
+    on the signs of z.a, z.b, using `rat_trich` and `norm_eq_zero_iff` exactly
+    as the roadmap prescribes: when a,b have the same sign the answer is
+    immediate; when they differ, comparing a² to 2b² decides it, and the tie
+    case a²=2b² (b≠0) is excluded by `norm_eq_zero_iff`/`rat_no_sqrt_two`. -/
+
+theorem pos_trichotomy (z : QS) : Pos z ∨ z = 0 ∨ Pos (⟨-z.a, -z.b⟩ : QS) := by
+  rcases rat_trich z.b 0 with hb | hb | hb
+  · -- z.b < 0
+    rcases rat_trich z.a 0 with ha | ha | ha
+    · -- z.a < 0, z.b < 0 : both strictly negative, -z is branch1
+      right; right
+      left
+      exact ⟨by grind, by grind, Or.inl (by grind)⟩
+    · -- z.a = 0, z.b < 0
+      right; right
+      left
+      exact ⟨by grind, by grind, Or.inr (by grind)⟩
+    · -- 0 < z.a, z.b < 0 : compare squares
+      rcases rat_trich (2 * (z.b * z.b)) (z.a * z.a) with hcmp | hcmp | hcmp
+      · -- 2b² < a² : Pos z, branch2
+        left
+        exact Or.inr (Or.inl ⟨by grind, hb, hcmp⟩)
+      · -- 2b² = a² : contradicts irrationality, since z.b ≠ 0
+        exfalso
+        have hn : norm z = 0 := by show z.a * z.a - 2 * (z.b * z.b) = 0; grind
+        have hz0 := (norm_eq_zero_iff z).mp hn
+        have hzb : z.b = 0 := by rw [hz0]; rfl
+        grind
+      · -- a² < 2b² : Pos(-z), branch3
+        right; right
+        exact Or.inr (Or.inr ⟨by grind, by grind, by grind⟩)
+  · -- z.b = 0
+    rcases rat_trich z.a 0 with ha | ha | ha
+    · right; right
+      left
+      exact ⟨by grind, by grind, Or.inl (by grind)⟩
+    · right; left
+      show (⟨z.a, z.b⟩ : QS) = (⟨0, 0⟩ : QS)
+      rw [ha, hb]
+    · left
+      exact Or.inl ⟨by grind, by grind, Or.inl ha⟩
+  · -- 0 < z.b
+    rcases rat_trich z.a 0 with ha | ha | ha
+    · -- z.a < 0, 0 < z.b : compare squares
+      rcases rat_trich (z.a * z.a) (2 * (z.b * z.b)) with hcmp | hcmp | hcmp
+      · -- a² < 2b² : Pos z, branch3
+        left
+        exact Or.inr (Or.inr ⟨ha, by grind, hcmp⟩)
+      · -- a² = 2b² : contradicts irrationality
+        exfalso
+        have hn : norm z = 0 := by show z.a * z.a - 2 * (z.b * z.b) = 0; grind
+        have hz0 := (norm_eq_zero_iff z).mp hn
+        have hzb : z.b = 0 := by rw [hz0]; rfl
+        grind
+      · -- 2b² < a² : Pos(-z), branch2
+        right; right
+        exact Or.inr (Or.inl ⟨by grind, by grind, by grind⟩)
+    · left
+      exact Or.inl ⟨by grind, by grind, Or.inr hb⟩
+    · left
+      exact Or.inl ⟨by grind, by grind, Or.inl ha⟩
+
+/-! ## Helper lemmas for closure of Pos under addition.
+
+    `le_of_sq_le`/`sqLe_add` handle the "same-direction dominance" cases
+    (both summands a-dominant, or both b-dominant) via a Cauchy-Schwarz-style
+    argument. `sq_le_sq_of_nonneg`/`sq_lt_sq_of_nonneg` are the easy forward
+    direction, used for the branch1-involving cases. The genuinely hard
+    "opposite-direction dominance" case (one summand a-dominant, the other
+    b-dominant) is handled separately below by `mixed_not_neg`, using an
+    explicit rational cross-multiplication certificate (no square roots). -/
+
+theorem sq_le_sq_of_nonneg {p q : Rat} (hp : 0 ≤ p) (hq : 0 ≤ q) (h : p ≤ q) :
+    p * p ≤ q * q := by
+  have h1 : p * p ≤ p * q := Rat.mul_le_mul_of_nonneg_left h hp
+  have h2 : p * q ≤ q * q := Rat.mul_le_mul_of_nonneg_right h hq
+  exact Rat.le_trans h1 h2
+
+theorem sq_lt_sq_of_nonneg {p q : Rat} (hp : 0 ≤ p) (hq : 0 ≤ q) (h : p < q) :
+    p * p < q * q := by
+  rcases Rat.le_iff_lt_or_eq.mp hq with hq' | hq'
+  · have h1 : p * p ≤ p * q := Rat.mul_le_mul_of_nonneg_left (Rat.le_of_lt h) hp
+    have h2 : p * q < q * q := Rat.mul_lt_mul_of_pos_right h hq'
+    grind
+  · exfalso; grind
+
+theorem le_of_sq_le {u v : Rat} (hv : 0 ≤ v) (h : u * u ≤ v * v) : u ≤ v := by
+  rcases Rat.le_total (a := u) (b := v) with hle | hge
+  · exact hle
+  · rcases Rat.le_iff_lt_or_eq.mp hge with hlt | heq
+    · exfalso
+      have h1 : v * v ≤ v * u := by
+        have : 0 ≤ u - v := by grind
+        have := Rat.mul_nonneg hv this
+        grind
+      have h2 : v * u < u * u := by
+        have : 0 < u - v := by grind
+        have hu_pos : 0 < u := by grind
+        have := Rat.mul_pos this hu_pos
+        grind
+      have h_strict : v * v < u * u := by grind
+      have : ¬ (u * u ≤ v * v) := Rat.not_le.mpr h_strict
+      exact this h
+    · grind
+
+theorem sqLe_add {p₁ q₁ p₂ q₂ : Rat}
+    (hp₁ : 0 ≤ p₁) (hq₁ : 0 ≤ q₁) (hp₂ : 0 ≤ p₂) (hq₂ : 0 ≤ q₂)
+    (h₁ : 2 * (q₁ * q₁) ≤ p₁ * p₁) (h₂ : 2 * (q₂ * q₂) ≤ p₂ * p₂) :
+    2 * ((q₁ + q₂) * (q₁ + q₂)) ≤ (p₁ + p₂) * (p₁ + p₂) := by
+  have hA : 0 ≤ 2 * (q₁ * q₂) := by
+    have := Rat.mul_nonneg hq₁ hq₂
+    grind
+  have hB : 0 ≤ p₁ * p₂ := Rat.mul_nonneg hp₁ hp₂
+  have hsq : (2 * (q₁ * q₂)) * (2 * (q₁ * q₂)) ≤ (p₁ * p₂) * (p₁ * p₂) := by
+    have e1 : (2 * (q₁ * q₂)) * (2 * (q₁ * q₂)) = (2 * (q₁ * q₁)) * (2 * (q₂ * q₂)) := by grind
+    have e2 : (p₁ * p₂) * (p₁ * p₂) = (p₁ * p₁) * (p₂ * p₂) := by grind
+    rw [e1, e2]
+    have n1 : 0 ≤ 2 * (q₁ * q₁) := by
+      have := Rat.mul_nonneg hq₁ hq₁
+      grind
+    have n2 : 0 ≤ p₂ * p₂ := Rat.mul_nonneg hp₂ hp₂
+    have step1 : (2 * (q₁ * q₁)) * (2 * (q₂ * q₂)) ≤ (2 * (q₁ * q₁)) * (p₂ * p₂) := by
+      have hdiff : 0 ≤ p₂ * p₂ - 2 * (q₂ * q₂) := by grind
+      have := Rat.mul_nonneg n1 hdiff
+      grind
+    have step2 : (2 * (q₁ * q₁)) * (p₂ * p₂) ≤ (p₁ * p₁) * (p₂ * p₂) := by
+      have hdiff : 0 ≤ p₁ * p₁ - 2 * (q₁ * q₁) := by grind
+      have := Rat.mul_nonneg hdiff n2
+      grind
+    exact Rat.le_trans step1 step2
+  have hmix : 2 * (q₁ * q₂) ≤ p₁ * p₂ := le_of_sq_le hB hsq
+  grind
+
+/-- The hard case: one summand is a-dominant (U,-B, with U²>2B²), the other is
+    b-dominant (-A,V, with A²<2V²), opposite directions. Shows their sum's
+    negation can't be positive, i.e. the sum itself isn't negative — via two
+    pure polynomial identities (no square roots): `V*(U-A) - A*(B-V) = UV-AB`
+    and `B*(U-A) - U*(B-V) = UV-AB`, each turning one branch of `Pos` applied
+    to `⟨A-U, B-V⟩` into a contradiction once `U*V > A*B` is established. -/
+theorem dominance_mul_lt (U B A V : Rat)
+    (hU : 0 < U) (hB : 0 < B) (hA : 0 < A) (hV : 0 < V)
+    (hD1 : 2 * (B * B) < U * U) (hD2 : A * A < 2 * (V * V)) :
+    A * B < U * V := by
+  apply Classical.byContradiction
+  intro hcon
+  have hcon' : U * V ≤ A * B := Rat.not_lt.mp hcon
+  have hsq : (U * V) * (U * V) ≤ (A * B) * (A * B) :=
+    sq_le_sq_of_nonneg (Rat.mul_nonneg (Rat.le_of_lt hU) (Rat.le_of_lt hV))
+      (Rat.mul_nonneg (Rat.le_of_lt hA) (Rat.le_of_lt hB)) hcon'
+  have hpos : 0 < (U * U - 2 * (B * B)) * (V * V) + (2 * (V * V) - A * A) * (B * B) := by
+    have t1 : 0 < (U * U - 2 * (B * B)) * (V * V) :=
+      Rat.mul_pos (by grind) (Rat.mul_pos hV hV)
+    have t2 : 0 < (2 * (V * V) - A * A) * (B * B) :=
+      Rat.mul_pos (by grind) (Rat.mul_pos hB hB)
+    grind
+  grind
+
+theorem mixed_not_neg (U B A V : Rat)
+    (hU : 0 < U) (hB : 0 < B) (hA : 0 < A) (hV : 0 < V)
+    (hD1 : 2 * (B * B) < U * U) (hD2 : A * A < 2 * (V * V)) :
+    ¬ Pos (⟨A - U, B - V⟩ : QS) := by
+  have hUV : A * B < U * V := dominance_mul_lt U B A V hU hB hA hV hD1 hD2
+  intro hpos
+  unfold Pos at hpos
+  simp only at hpos
+  rcases hpos with h | h | h
+  · -- branch1: A-U≥0 ∧ B-V≥0 ⟹ AB≥UV, contradicting hUV
+    obtain ⟨h1, h2, _⟩ := h
+    have hAB : U * B ≤ A * B :=
+      Rat.mul_le_mul_of_nonneg_right (by grind : U ≤ A) (Rat.le_of_lt hB)
+    have hUV' : U * V ≤ U * B :=
+      Rat.mul_le_mul_of_nonneg_left (by grind : V ≤ B) (Rat.le_of_lt hU)
+    grind
+  · -- branch2: A-U≥0 ∧ B-V<0 ∧ 2(B-V)²<(A-U)² ; contradicts via hD2
+    obtain ⟨h1, h2, h3⟩ := h
+    have key : V * (A - U) < A * (V - B) := by grind
+    have hVB : 0 < V - B := by grind
+    have hsq2 : (V * (A - U)) * (V * (A - U)) < (A * (V - B)) * (A * (V - B)) := by
+      apply sq_lt_sq_of_nonneg
+      · exact Rat.mul_nonneg (Rat.le_of_lt hV) h1
+      · exact Rat.mul_nonneg (Rat.le_of_lt hA) (Rat.le_of_lt hVB)
+      · exact key
+    have hbound : (A * (V - B)) * (A * (V - B)) < (2 * (V * V)) * ((V - B) * (V - B)) := by
+      have hVBsq : 0 < (V - B) * (V - B) := Rat.mul_pos hVB hVB
+      have e1 : (A * (V - B)) * (A * (V - B)) = (A * A) * ((V - B) * (V - B)) := by grind
+      rw [e1]
+      exact (Rat.mul_lt_mul_right hVBsq).mpr hD2
+    have hchain : (V * V) * ((U - A) * (U - A)) < (V * V) * (2 * ((V - B) * (V - B))) := by
+      have e1 : (V * (A - U)) * (V * (A - U)) = (V * V) * ((U - A) * (U - A)) := by grind
+      have e3 : (2 * (V * V)) * ((V - B) * (V - B)) = (V * V) * (2 * ((V - B) * (V - B))) := by
+        grind
+      rw [e3] at hbound
+      rw [e1] at hsq2
+      grind
+    have hVsq : 0 < V * V := Rat.mul_pos hV hV
+    have hfin : (U - A) * (U - A) < 2 * ((V - B) * (V - B)) :=
+      (Rat.mul_lt_mul_left hVsq).mp hchain
+    have hVBeq : (V - B) * (V - B) = (B - V) * (B - V) := by grind
+    have hUAeq : (U - A) * (U - A) = (A - U) * (A - U) := by grind
+    rw [hVBeq, hUAeq] at hfin
+    grind
+  · -- branch3: A-U<0 ∧ B-V≥0 ∧ (A-U)²<2(B-V)² ; contradicts via hD1
+    obtain ⟨h1, h2, h3⟩ := h
+    have key : U * (B - V) < B * (U - A) := by grind
+    have hUA : 0 < U - A := by grind
+    have hsq1 : (U * (B - V)) * (U * (B - V)) < (B * (U - A)) * (B * (U - A)) := by
+      apply sq_lt_sq_of_nonneg
+      · exact Rat.mul_nonneg (Rat.le_of_lt hU) h2
+      · exact Rat.mul_nonneg (Rat.le_of_lt hB) (Rat.le_of_lt hUA)
+      · exact key
+    have hbound : (2 * (B * B)) * ((B - V) * (B - V)) ≤ (U * U) * ((B - V) * (B - V)) := by
+      have hBVsq : 0 ≤ (B - V) * (B - V) := Rat.mul_nonneg h2 h2
+      exact Rat.mul_le_mul_of_nonneg_right (Rat.le_of_lt hD1) hBVsq
+    have hchain : (2 * (B * B)) * ((B - V) * (B - V)) < (B * B) * ((U - A) * (U - A)) := by
+      have e1 : (U * (B - V)) * (U * (B - V)) = (U * U) * ((B - V) * (B - V)) := by grind
+      have e2 : (B * (U - A)) * (B * (U - A)) = (B * B) * ((U - A) * (U - A)) := by grind
+      rw [e1, e2] at hsq1
+      grind
+    have hBsq : 0 < B * B := Rat.mul_pos hB hB
+    have hfin : 2 * ((B - V) * (B - V)) < (U - A) * (U - A) := by
+      have e : (2 * (B * B)) * ((B - V) * (B - V)) = (B * B) * (2 * ((B - V) * (B - V))) := by
+        grind
+      rw [e] at hchain
+      exact (Rat.mul_lt_mul_left hBsq).mp hchain
+    have hUAeq : (U - A) * (U - A) = (A - U) * (A - U) := by grind
+    rw [hUAeq] at hfin
+    grind
+
+theorem sqLe_add2 {p₁ q₁ p₂ q₂ : Rat}
+    (hp₁ : 0 ≤ p₁) (hq₁ : 0 ≤ q₁) (hp₂ : 0 ≤ p₂) (hq₂ : 0 ≤ q₂)
+    (h₁ : p₁ * p₁ ≤ 2 * (q₁ * q₁)) (h₂ : p₂ * p₂ ≤ 2 * (q₂ * q₂)) :
+    (p₁ + p₂) * (p₁ + p₂) ≤ 2 * ((q₁ + q₂) * (q₁ + q₂)) := by
+  have hA : 0 ≤ p₁ * p₂ := Rat.mul_nonneg hp₁ hp₂
+  have hB : 0 ≤ 2 * (q₁ * q₂) := by
+    have := Rat.mul_nonneg hq₁ hq₂; grind
+  have hsq : (p₁ * p₂) * (p₁ * p₂) ≤ (2 * (q₁ * q₂)) * (2 * (q₁ * q₂)) := by
+    have e1 : (p₁ * p₂) * (p₁ * p₂) = (p₁ * p₁) * (p₂ * p₂) := by grind
+    have e2 : (2 * (q₁ * q₂)) * (2 * (q₁ * q₂)) = (2 * (q₁ * q₁)) * (2 * (q₂ * q₂)) := by grind
+    rw [e1, e2]
+    have n1 : 0 ≤ p₂ * p₂ := Rat.mul_nonneg hp₂ hp₂
+    have n2 : 0 ≤ 2 * (q₁ * q₁) := by have := Rat.mul_nonneg hq₁ hq₁; grind
+    have step1 : (p₁ * p₁) * (p₂ * p₂) ≤ (2 * (q₁ * q₁)) * (p₂ * p₂) := by
+      have hdiff : 0 ≤ 2 * (q₁ * q₁) - p₁ * p₁ := by grind
+      have := Rat.mul_nonneg hdiff n1
+      grind
+    have step2 : (2 * (q₁ * q₁)) * (p₂ * p₂) ≤ (2 * (q₁ * q₁)) * (2 * (q₂ * q₂)) := by
+      have hdiff : 0 ≤ 2 * (q₂ * q₂) - p₂ * p₂ := by grind
+      have := Rat.mul_nonneg n2 hdiff
+      grind
+    exact Rat.le_trans step1 step2
+  have hmix : p₁ * p₂ ≤ 2 * (q₁ * q₂) := le_of_sq_le hB hsq
+  grind
+
+/-- x is branch1 (both components ≥ 0), y is any positive element: the sum is
+    positive. This is the "monotonic" case — adding a nonnegative-nonnegative
+    element only helps, no square-root-scale argument is needed, just
+    comparing y's own components to the shifted sum. -/
+theorem pos_add_branch1_left (x y : QS) (hxa : 0 ≤ x.a) (hxb : 0 ≤ x.b) (hy : Pos y) :
+    Pos (⟨x.a + y.a, x.b + y.b⟩ : QS) := by
+  rcases hy with h | h | h
+  · obtain ⟨ha, hb, hor⟩ := h
+    refine Or.inl ⟨by grind, by grind, ?_⟩
+    rcases hor with h' | h'
+    · left; grind
+    · right; grind
+  · obtain ⟨ha, hb, hsq⟩ := h
+    have hya : 0 < y.a := by
+      rcases Rat.le_iff_lt_or_eq.mp ha with h' | h'
+      · exact h'
+      · exfalso
+        have hz : y.a = 0 := h'.symm
+        have hnn : (0 : Rat) ≤ y.b * y.b := sq_nonneg y.b
+        rw [hz] at hsq
+        grind
+    rcases rat_trich (x.b + y.b) 0 with hs | hs | hs
+    · refine Or.inr (Or.inl ⟨by grind, hs, ?_⟩)
+      have hb2 : (x.b + y.b) * (x.b + y.b) ≤ y.b * y.b := by
+        have key := sq_le_sq_of_nonneg (p := -(x.b + y.b)) (q := -y.b)
+          (by grind) (by grind) (by grind)
+        grind
+      have ha2 : y.a * y.a ≤ (x.a + y.a) * (x.a + y.a) := by
+        have key := sq_le_sq_of_nonneg (p := y.a) (q := x.a + y.a)
+          (by grind) (by grind) (by grind)
+        grind
+      grind
+    · exact Or.inl ⟨by grind, by grind, Or.inl (by grind)⟩
+    · exact Or.inl ⟨by grind, by grind, Or.inl (by grind)⟩
+  · obtain ⟨ha, hb, hsq⟩ := h
+    have hyb : 0 < y.b := by
+      rcases Rat.le_iff_lt_or_eq.mp hb with h' | h'
+      · exact h'
+      · exfalso
+        have hz : y.b = 0 := h'.symm
+        have hnn : (0 : Rat) ≤ y.a * y.a := sq_nonneg y.a
+        rw [hz] at hsq
+        grind
+    rcases rat_trich (x.a + y.a) 0 with hs | hs | hs
+    · refine Or.inr (Or.inr ⟨hs, by grind, ?_⟩)
+      have ha2 : (x.a + y.a) * (x.a + y.a) ≤ y.a * y.a := by
+        have key := sq_le_sq_of_nonneg (p := -(x.a + y.a)) (q := -y.a)
+          (by grind) (by grind) (by grind)
+        grind
+      have hb2 : y.b * y.b ≤ (x.b + y.b) * (x.b + y.b) := by
+        have key := sq_le_sq_of_nonneg (p := y.b) (q := x.b + y.b)
+          (by grind) (by grind) (by grind)
+        grind
+      grind
+    · exact Or.inl ⟨by grind, by grind, Or.inr (by grind)⟩
+    · exact Or.inl ⟨by grind, by grind, Or.inr (by grind)⟩
+
+/-- Positivity is closed under addition. Nine cases from the two branches of
+    `Pos x` × `Pos y`: branch1-involving cases reduce to `pos_add_branch1_left`
+    (monotonicity); same-direction cases (2+2, 3+3) reduce to `sqLe_add`/
+    `sqLe_add2` (Cauchy-Schwarz) with a strictness upgrade via
+    `norm_eq_zero_iff`; opposite-direction cases (2+3, 3+2) reduce to
+    `mixed_not_neg` via `pos_trichotomy` on the sum. -/
+theorem pos_add (x y : QS) (hx : Pos x) (hy : Pos y) :
+    Pos (⟨x.a + y.a, x.b + y.b⟩ : QS) := by
+  rcases hx with hx1 | hx2 | hx3
+  · obtain ⟨hxa, hxb, _⟩ := hx1
+    exact pos_add_branch1_left x y hxa hxb hy
+  · rcases hy with hy1 | hy2 | hy3
+    · obtain ⟨hya, hyb, _⟩ := hy1
+      have hswap := pos_add_branch1_left y x hya hyb (Or.inr (Or.inl hx2))
+      have e : (⟨y.a + x.a, y.b + x.b⟩ : QS) = (⟨x.a + y.a, x.b + y.b⟩ : QS) := by
+        congr 1 <;> grind
+      rwa [e] at hswap
+    · -- branch2 + branch2
+      obtain ⟨hx2a, hx2b, hx2sq⟩ := hx2
+      obtain ⟨hy2a, hy2b, hy2sq⟩ := hy2
+      have hxa_pos : 0 < x.a := by
+        rcases Rat.le_iff_lt_or_eq.mp hx2a with h' | h'
+        · exact h'
+        · exfalso
+          have hz : x.a = 0 := h'.symm
+          have hnn : (0 : Rat) ≤ x.b * x.b := sq_nonneg x.b
+          rw [hz] at hx2sq; grind
+      have hya_pos : 0 < y.a := by
+        rcases Rat.le_iff_lt_or_eq.mp hy2a with h' | h'
+        · exact h'
+        · exfalso
+          have hz : y.a = 0 := h'.symm
+          have hnn : (0 : Rat) ≤ y.b * y.b := sq_nonneg y.b
+          rw [hz] at hy2sq; grind
+      have hle : 2 * ((x.b + y.b) * (x.b + y.b)) ≤ (x.a + y.a) * (x.a + y.a) := by
+        have key := sqLe_add (p₁ := x.a) (q₁ := -x.b) (p₂ := y.a) (q₂ := -y.b)
+          (by grind) (by grind) (by grind) (by grind) (by grind) (by grind)
+        grind
+      refine Or.inr (Or.inl ⟨by grind, by grind, ?_⟩)
+      rcases Rat.le_iff_lt_or_eq.mp hle with hlt | heq
+      · exact hlt
+      · exfalso
+        have hn0 : norm (⟨x.a + y.a, x.b + y.b⟩ : QS) = 0 := by
+          show (x.a + y.a) * (x.a + y.a) - 2 * ((x.b + y.b) * (x.b + y.b)) = 0
+          grind
+        have hz0 : (⟨x.a + y.a, x.b + y.b⟩ : QS) = (⟨0, 0⟩ : QS) := (norm_eq_zero_iff _).mp hn0
+        have hbz : x.a + y.a = 0 := congrArg QS.a hz0
+        grind
+    · -- branch2 + branch3 (opposite dominance)
+      obtain ⟨hx2a, hx2b, hx2sq⟩ := hx2
+      obtain ⟨hy3a, hy3b, hy3sq⟩ := hy3
+      have hxa_pos : 0 < x.a := by
+        rcases Rat.le_iff_lt_or_eq.mp hx2a with h' | h'
+        · exact h'
+        · exfalso
+          have hz : x.a = 0 := h'.symm
+          have hnn : (0 : Rat) ≤ x.b * x.b := sq_nonneg x.b
+          rw [hz] at hx2sq; grind
+      have hyb_pos : 0 < y.b := by
+        rcases Rat.le_iff_lt_or_eq.mp hy3b with h' | h'
+        · exact h'
+        · exfalso
+          have hz : y.b = 0 := h'.symm
+          have hnn : (0 : Rat) ≤ y.a * y.a := sq_nonneg y.a
+          rw [hz] at hy3sq; grind
+      have hUV : (-y.a) * (-x.b) < x.a * y.b :=
+        dominance_mul_lt x.a (-x.b) (-y.a) y.b hxa_pos (by grind) (by grind) hyb_pos
+          (by grind) (by grind)
+      have hmixed := mixed_not_neg x.a (-x.b) (-y.a) y.b hxa_pos (by grind) (by grind) hyb_pos
+        (by grind) (by grind)
+      rcases pos_trichotomy (⟨x.a + y.a, x.b + y.b⟩ : QS) with hp | hz | hn
+      · exact hp
+      · exfalso
+        have hz0 : (⟨x.a + y.a, x.b + y.b⟩ : QS) = (⟨0, 0⟩ : QS) := hz
+        have ha' : x.a + y.a = 0 := congrArg QS.a hz0
+        have hb' : x.b + y.b = 0 := congrArg QS.b hz0
+        have hxa_eq : x.a = -y.a := by grind
+        have hxb_eq : x.b = -y.b := by grind
+        rw [hxa_eq, hxb_eq] at hUV
+        grind
+      · exfalso
+        apply hmixed
+        have e : (⟨(-y.a) - x.a, (-x.b) - y.b⟩ : QS) = (⟨-(x.a + y.a), -(x.b + y.b)⟩ : QS) := by
+          congr 1 <;> grind
+        rw [e]
+        exact hn
+  · rcases hy with hy1 | hy2 | hy3
+    · obtain ⟨hya, hyb, _⟩ := hy1
+      have hswap := pos_add_branch1_left y x hya hyb (Or.inr (Or.inr hx3))
+      have e : (⟨y.a + x.a, y.b + x.b⟩ : QS) = (⟨x.a + y.a, x.b + y.b⟩ : QS) := by
+        congr 1 <;> grind
+      rwa [e] at hswap
+    · -- branch3 + branch2 (opposite dominance, mirrored)
+      obtain ⟨hx3a, hx3b, hx3sq⟩ := hx3
+      obtain ⟨hy2a, hy2b, hy2sq⟩ := hy2
+      have hya_pos : 0 < y.a := by
+        rcases Rat.le_iff_lt_or_eq.mp hy2a with h' | h'
+        · exact h'
+        · exfalso
+          have hz : y.a = 0 := h'.symm
+          have hnn : (0 : Rat) ≤ y.b * y.b := sq_nonneg y.b
+          rw [hz] at hy2sq; grind
+      have hxb_pos : 0 < x.b := by
+        rcases Rat.le_iff_lt_or_eq.mp hx3b with h' | h'
+        · exact h'
+        · exfalso
+          have hz : x.b = 0 := h'.symm
+          have hnn : (0 : Rat) ≤ x.a * x.a := sq_nonneg x.a
+          rw [hz] at hx3sq; grind
+      have hUV : (-x.a) * (-y.b) < y.a * x.b :=
+        dominance_mul_lt y.a (-y.b) (-x.a) x.b hya_pos (by grind) (by grind) hxb_pos
+          (by grind) (by grind)
+      have hmixed := mixed_not_neg y.a (-y.b) (-x.a) x.b hya_pos (by grind) (by grind) hxb_pos
+        (by grind) (by grind)
+      rcases pos_trichotomy (⟨x.a + y.a, x.b + y.b⟩ : QS) with hp | hz | hn
+      · exact hp
+      · exfalso
+        have hz0 : (⟨x.a + y.a, x.b + y.b⟩ : QS) = (⟨0, 0⟩ : QS) := hz
+        have ha' : x.a + y.a = 0 := congrArg QS.a hz0
+        have hb' : x.b + y.b = 0 := congrArg QS.b hz0
+        have hya_eq : y.a = -x.a := by grind
+        have hyb_eq : y.b = -x.b := by grind
+        rw [hya_eq, hyb_eq] at hUV
+        grind
+      · exfalso
+        apply hmixed
+        have e : (⟨(-x.a) - y.a, (-y.b) - x.b⟩ : QS) = (⟨-(x.a + y.a), -(x.b + y.b)⟩ : QS) := by
+          congr 1 <;> grind
+        rw [e]
+        exact hn
+    · -- branch3 + branch3
+      obtain ⟨hx3a, hx3b, hx3sq⟩ := hx3
+      obtain ⟨hy3a, hy3b, hy3sq⟩ := hy3
+      have hxb_pos : 0 < x.b := by
+        rcases Rat.le_iff_lt_or_eq.mp hx3b with h' | h'
+        · exact h'
+        · exfalso
+          have hz : x.b = 0 := h'.symm
+          have hnn : (0 : Rat) ≤ x.a * x.a := sq_nonneg x.a
+          rw [hz] at hx3sq; grind
+      have hyb_pos : 0 < y.b := by
+        rcases Rat.le_iff_lt_or_eq.mp hy3b with h' | h'
+        · exact h'
+        · exfalso
+          have hz : y.b = 0 := h'.symm
+          have hnn : (0 : Rat) ≤ y.a * y.a := sq_nonneg y.a
+          rw [hz] at hy3sq; grind
+      have hle : (x.a + y.a) * (x.a + y.a) ≤ 2 * ((x.b + y.b) * (x.b + y.b)) := by
+        have key := sqLe_add2 (p₁ := -x.a) (q₁ := x.b) (p₂ := -y.a) (q₂ := y.b)
+          (by grind) (by grind) (by grind) (by grind) (by grind) (by grind)
+        grind
+      have hsuma_neg : x.a + y.a < 0 := by grind
+      refine Or.inr (Or.inr ⟨hsuma_neg, by grind, ?_⟩)
+      rcases Rat.le_iff_lt_or_eq.mp hle with hlt | heq
+      · exact hlt
+      · exfalso
+        have hn0 : norm (⟨x.a + y.a, x.b + y.b⟩ : QS) = 0 := by
+          show (x.a + y.a) * (x.a + y.a) - 2 * ((x.b + y.b) * (x.b + y.b)) = 0
+          grind
+        have hz0 : (⟨x.a + y.a, x.b + y.b⟩ : QS) = (⟨0, 0⟩ : QS) := (norm_eq_zero_iff _).mp hn0
+        have hbz : x.b + y.b = 0 := congrArg QS.b hz0
+        grind
+
+theorem trichotomy (x y : QS) : x < y ∨ x = y ∨ y < x := by
+  rcases pos_trichotomy (⟨y.a - x.a, y.b - x.b⟩ : QS) with h | h | h
+  · left; exact h
+  · right; left
+    have h' : (⟨y.a - x.a, y.b - x.b⟩ : QS) = (⟨0, 0⟩ : QS) := h
+    have ha' : y.a - x.a = 0 := congrArg QS.a h'
+    have hb' : y.b - x.b = 0 := congrArg QS.b h'
+    show (⟨x.a, x.b⟩ : QS) = (⟨y.a, y.b⟩ : QS)
+    have hae : x.a = y.a := by grind
+    have hbe : x.b = y.b := by grind
+    rw [hae, hbe]
+  · right; right
+    show Pos (⟨x.a - y.a, x.b - y.b⟩ : QS)
+    have e1 : x.a - y.a = -(y.a - x.a) := by grind
+    have e2 : x.b - y.b = -(y.b - x.b) := by grind
+    rw [e1, e2]
+    exact h
+
+theorem transitivity (x y z : QS) (hxy : x < y) (hyz : y < z) : x < z := by
+  show Pos (⟨z.a - x.a, z.b - x.b⟩ : QS)
+  have hu : Pos (⟨y.a - x.a, y.b - x.b⟩ : QS) := hxy
+  have hv : Pos (⟨z.a - y.a, z.b - y.b⟩ : QS) := hyz
+  have hsum := pos_add (⟨y.a - x.a, y.b - x.b⟩ : QS) (⟨z.a - y.a, z.b - y.b⟩ : QS) hu hv
+  have ea : (y.a - x.a) + (z.a - y.a) = z.a - x.a := by grind
+  have eb : (y.b - x.b) + (z.b - y.b) = z.b - x.b := by grind
+  rw [ea, eb] at hsum
+  exact hsum
+
+/-! ## Roadmap Step 5: positivity closed under multiplication.
+
+    Unlike addition, multiplication needs no cross-dominance trick: any
+    branch1 (nonnegative-pair) factor decomposes as
+    `x = emb x.a + emb x.b * s`, and both positive-scalar multiplication
+    (`pos_scale`) and multiplication by `s` alone (`pos_s_mul`) preserve
+    positivity with no ambiguity, so `pos_add` finishes those cases. The
+    remaining branch2/branch3 combinations have components with an
+    unconditional sign (verified directly), and `norm_mul` supplies the
+    needed square inequality from the sign of `norm x * norm y`. -/
+
+theorem norm_mul (x y : QS) : norm (x * y) = norm x * norm y := by
+  show (x.a * y.a + 2 * (x.b * y.b)) * (x.a * y.a + 2 * (x.b * y.b))
+      - 2 * ((x.a * y.b + x.b * y.a) * (x.a * y.b + x.b * y.a))
+      = (x.a * x.a - 2 * (x.b * x.b)) * (y.a * y.a - 2 * (y.b * y.b))
+  grind
+
+theorem pos_scale (q : Rat) (hq : 0 < q) (y : QS) (hy : Pos y) : Pos (emb q * y) := by
+  show Pos (⟨q * y.a + 2 * (0 * y.b), q * y.b + 0 * y.a⟩ : QS)
+  rcases hy with h | h | h
+  · obtain ⟨ha, hb, hor⟩ := h
+    have hqa : 0 ≤ q * y.a := Rat.mul_nonneg (Rat.le_of_lt hq) ha
+    have hqb : 0 ≤ q * y.b := Rat.mul_nonneg (Rat.le_of_lt hq) hb
+    refine Or.inl ⟨by grind, by grind, ?_⟩
+    rcases hor with h' | h'
+    · left; have := Rat.mul_pos hq h'; grind
+    · right; have := Rat.mul_pos hq h'; grind
+  · obtain ⟨ha, hb, hsq⟩ := h
+    have hqa : 0 ≤ q * y.a := Rat.mul_nonneg (Rat.le_of_lt hq) ha
+    have hqb : q * y.b < 0 := by
+      have := Rat.mul_pos hq (by grind : 0 < -y.b); grind
+    refine Or.inr (Or.inl ⟨by grind, by grind, ?_⟩)
+    have hq2 : 0 < q * q := Rat.mul_pos hq hq
+    have step : q * q * (2 * (y.b * y.b)) < q * q * (y.a * y.a) :=
+      (Rat.mul_lt_mul_left hq2).mpr hsq
+    have e1 : 2 * ((q * y.b + 0 * y.a) * (q * y.b + 0 * y.a)) = q * q * (2 * (y.b * y.b)) := by
+      grind
+    have e2 : (q * y.a + 2 * (0 * y.b)) * (q * y.a + 2 * (0 * y.b)) = q * q * (y.a * y.a) := by
+      grind
+    rw [e1, e2]; exact step
+  · obtain ⟨ha, hb, hsq⟩ := h
+    have hqa : q * y.a < 0 := by
+      have := Rat.mul_pos hq (by grind : 0 < -y.a); grind
+    have hqb : 0 ≤ q * y.b := Rat.mul_nonneg (Rat.le_of_lt hq) hb
+    refine Or.inr (Or.inr ⟨by grind, by grind, ?_⟩)
+    have hq2 : 0 < q * q := Rat.mul_pos hq hq
+    have step : q * q * (y.a * y.a) < q * q * (2 * (y.b * y.b)) :=
+      (Rat.mul_lt_mul_left hq2).mpr hsq
+    have e1 : (q * y.a + 2 * (0 * y.b)) * (q * y.a + 2 * (0 * y.b)) = q * q * (y.a * y.a) := by
+      grind
+    have e2 : 2 * ((q * y.b + 0 * y.a) * (q * y.b + 0 * y.a)) = q * q * (2 * (y.b * y.b)) := by
+      grind
+    rw [e1, e2]; exact step
+
+theorem pos_s_mul (y : QS) (hy : Pos y) : Pos (s * y) := by
+  show Pos (⟨0 * y.a + 2 * (1 * y.b), 0 * y.b + 1 * y.a⟩ : QS)
+  rcases hy with h | h | h
+  · obtain ⟨ha, hb, hor⟩ := h
+    refine Or.inl ⟨by grind, by grind, ?_⟩
+    rcases hor with h' | h'
+    · right; grind
+    · left; grind
+  · obtain ⟨ha, hb, hsq⟩ := h
+    exact Or.inr (Or.inr ⟨by grind, by grind, by grind⟩)
+  · obtain ⟨ha, hb, hsq⟩ := h
+    exact Or.inr (Or.inl ⟨by grind, by grind, by grind⟩)
+
+theorem pos_mul_branch1_left (x y : QS) (hxa : 0 ≤ x.a) (hxb : 0 ≤ x.b)
+    (hor : 0 < x.a ∨ 0 < x.b) (hy : Pos y) : Pos (x * y) := by
+  have hdecomp : x = emb x.a + emb x.b * s := by
+    show (⟨x.a, x.b⟩ : QS)
+        = (⟨x.a + (x.b * 0 + 2 * (0 * 1)), 0 + (x.b * 1 + 0 * 0)⟩ : QS)
+    congr 1 <;> grind
+  rw [hdecomp, right_distrib, mul_assoc]
+  rcases hor with h' | h'
+  · have hp1 : Pos (emb x.a * y) := pos_scale x.a h' y hy
+    rcases Rat.le_iff_lt_or_eq.mp hxb with h'' | h''
+    · exact pos_add (emb x.a * y) (emb x.b * (s * y)) hp1
+        (pos_scale x.b h'' (s * y) (pos_s_mul y hy))
+    · have hz : emb x.b * (s * y) = (0 : QS) := by
+        have hxbz : x.b = 0 := h''.symm
+        show (⟨x.b * (s * y).a + 2 * (0 * (s * y).b), x.b * (s * y).b + 0 * (s * y).a⟩ : QS)
+            = (⟨0, 0⟩ : QS)
+        rw [hxbz]; grind
+      rw [hz, add_zero]
+      exact hp1
+  · have hp2 : Pos (emb x.b * (s * y)) := pos_scale x.b h' (s * y) (pos_s_mul y hy)
+    rcases Rat.le_iff_lt_or_eq.mp hxa with h'' | h''
+    · exact pos_add (emb x.a * y) (emb x.b * (s * y)) (pos_scale x.a h'' y hy) hp2
+    · have hz : emb x.a * y = (0 : QS) := by
+        have hxaz : x.a = 0 := h''.symm
+        show (⟨x.a * y.a + 2 * (0 * y.b), x.a * y.b + 0 * y.a⟩ : QS) = (⟨0, 0⟩ : QS)
+        rw [hxaz]; grind
+      rw [hz, zero_add]
+      exact hp2
+
+theorem mul_pos (x y : QS) (hx : Pos x) (hy : Pos y) : Pos (x * y) := by
+  rcases hx with hx1 | hx2 | hx3
+  · obtain ⟨hxa, hxb, hor⟩ := hx1
+    exact pos_mul_branch1_left x y hxa hxb hor hy
+  · rcases hy with hy1 | hy2 | hy3
+    · obtain ⟨hya, hyb, hor⟩ := hy1
+      have hswap := pos_mul_branch1_left y x hya hyb hor (Or.inr (Or.inl hx2))
+      have e : y * x = x * y := mul_comm y x
+      rwa [e] at hswap
+    · -- branch2 + branch2 → branch2
+      obtain ⟨hxa, hxb, hxsq⟩ := hx2
+      obtain ⟨hya, hyb, hysq⟩ := hy2
+      have hxa_pos : 0 < x.a := by
+        rcases Rat.le_iff_lt_or_eq.mp hxa with h' | h'
+        · exact h'
+        · exfalso; have hz : x.a = 0 := h'.symm
+          have hnn : (0 : Rat) ≤ x.b * x.b := sq_nonneg x.b
+          rw [hz] at hxsq; grind
+      have hya_pos : 0 < y.a := by
+        rcases Rat.le_iff_lt_or_eq.mp hya with h' | h'
+        · exact h'
+        · exfalso; have hz : y.a = 0 := h'.symm
+          have hnn : (0 : Rat) ≤ y.b * y.b := sq_nonneg y.b
+          rw [hz] at hysq; grind
+      show Pos (⟨x.a * y.a + 2 * (x.b * y.b), x.a * y.b + x.b * y.a⟩ : QS)
+      have hsa : 0 ≤ x.a * y.a + 2 * (x.b * y.b) := by
+        have t1 : 0 < x.a * y.a := Rat.mul_pos hxa_pos hya_pos
+        have t2 : 0 < x.b * y.b := by
+          have := Rat.mul_pos (by grind : (0:Rat) < -x.b) (by grind : (0:Rat) < -y.b); grind
+        grind
+      have hsb : x.a * y.b + x.b * y.a < 0 := by
+        have t1 : x.a * y.b < 0 := by
+          have := Rat.mul_pos hxa_pos (by grind : (0:Rat) < -y.b); grind
+        have t2 : x.b * y.a < 0 := by
+          have := Rat.mul_pos (by grind : (0:Rat) < -x.b) hya_pos; grind
+        grind
+      have hnx : 0 < norm x := by show 0 < x.a * x.a - 2 * (x.b * x.b); grind
+      have hny : 0 < norm y := by show 0 < y.a * y.a - 2 * (y.b * y.b); grind
+      have hnxy : 0 < norm (x * y) := by rw [norm_mul]; exact Rat.mul_pos hnx hny
+      refine Or.inr (Or.inl ⟨hsa, hsb, ?_⟩)
+      have hraw : 0 < (x.a * y.a + 2 * (x.b * y.b)) * (x.a * y.a + 2 * (x.b * y.b))
+          - 2 * ((x.a * y.b + x.b * y.a) * (x.a * y.b + x.b * y.a)) := hnxy
+      grind
+    · -- branch2 + branch3 → branch3
+      obtain ⟨hxa, hxb, hxsq⟩ := hx2
+      obtain ⟨hya, hyb, hysq⟩ := hy3
+      have hxa_pos : 0 < x.a := by
+        rcases Rat.le_iff_lt_or_eq.mp hxa with h' | h'
+        · exact h'
+        · exfalso; have hz : x.a = 0 := h'.symm
+          have hnn : (0 : Rat) ≤ x.b * x.b := sq_nonneg x.b
+          rw [hz] at hxsq; grind
+      have hyb_pos : 0 < y.b := by
+        rcases Rat.le_iff_lt_or_eq.mp hyb with h' | h'
+        · exact h'
+        · exfalso; have hz : y.b = 0 := h'.symm
+          have hnn : (0 : Rat) ≤ y.a * y.a := sq_nonneg y.a
+          rw [hz] at hysq; grind
+      show Pos (⟨x.a * y.a + 2 * (x.b * y.b), x.a * y.b + x.b * y.a⟩ : QS)
+      have hsa : x.a * y.a + 2 * (x.b * y.b) < 0 := by
+        have t1 : x.a * y.a < 0 := by
+          have := Rat.mul_pos hxa_pos (by grind : (0:Rat) < -y.a); grind
+        have t2 : x.b * y.b < 0 := by
+          have := Rat.mul_pos (by grind : (0:Rat) < -x.b) hyb_pos; grind
+        grind
+      have hsb : 0 < x.a * y.b + x.b * y.a := by
+        have t1 : 0 < x.a * y.b := Rat.mul_pos hxa_pos hyb_pos
+        have t2 : 0 < x.b * y.a := by
+          have := Rat.mul_pos (by grind : (0:Rat) < -x.b) (by grind : (0:Rat) < -y.a); grind
+        grind
+      have hnx : 0 < norm x := by show 0 < x.a * x.a - 2 * (x.b * x.b); grind
+      have hny : norm y < 0 := by show y.a * y.a - 2 * (y.b * y.b) < 0; grind
+      have hnxy : norm (x * y) < 0 := by
+        rw [norm_mul]
+        have := Rat.mul_pos hnx (by grind : 0 < -norm y)
+        grind
+      refine Or.inr (Or.inr ⟨hsa, by grind, ?_⟩)
+      have hraw : (x.a * y.a + 2 * (x.b * y.b)) * (x.a * y.a + 2 * (x.b * y.b))
+          - 2 * ((x.a * y.b + x.b * y.a) * (x.a * y.b + x.b * y.a)) < 0 := hnxy
+      grind
+  · rcases hy with hy1 | hy2 | hy3
+    · obtain ⟨hya, hyb, hor⟩ := hy1
+      have hswap := pos_mul_branch1_left y x hya hyb hor (Or.inr (Or.inr hx3))
+      have e : y * x = x * y := mul_comm y x
+      rwa [e] at hswap
+    · -- branch3 + branch2 → branch3
+      obtain ⟨hxa, hxb, hxsq⟩ := hx3
+      obtain ⟨hya, hyb, hysq⟩ := hy2
+      have hxb_pos : 0 < x.b := by
+        rcases Rat.le_iff_lt_or_eq.mp hxb with h' | h'
+        · exact h'
+        · exfalso; have hz : x.b = 0 := h'.symm
+          have hnn : (0 : Rat) ≤ x.a * x.a := sq_nonneg x.a
+          rw [hz] at hxsq; grind
+      have hya_pos : 0 < y.a := by
+        rcases Rat.le_iff_lt_or_eq.mp hya with h' | h'
+        · exact h'
+        · exfalso; have hz : y.a = 0 := h'.symm
+          have hnn : (0 : Rat) ≤ y.b * y.b := sq_nonneg y.b
+          rw [hz] at hysq; grind
+      show Pos (⟨x.a * y.a + 2 * (x.b * y.b), x.a * y.b + x.b * y.a⟩ : QS)
+      have hsa : x.a * y.a + 2 * (x.b * y.b) < 0 := by
+        have t1 : x.a * y.a < 0 := by
+          have := Rat.mul_pos (by grind : (0:Rat) < -x.a) hya_pos; grind
+        have t2 : x.b * y.b < 0 := by
+          have := Rat.mul_pos hxb_pos (by grind : (0:Rat) < -y.b); grind
+        grind
+      have hsb : 0 < x.a * y.b + x.b * y.a := by
+        have t1 : 0 < x.a * y.b := by
+          have := Rat.mul_pos (by grind : (0:Rat) < -x.a) (by grind : (0:Rat) < -y.b); grind
+        have t2 : 0 < x.b * y.a := Rat.mul_pos hxb_pos hya_pos
+        grind
+      have hnx : norm x < 0 := by show x.a * x.a - 2 * (x.b * x.b) < 0; grind
+      have hny : 0 < norm y := by show 0 < y.a * y.a - 2 * (y.b * y.b); grind
+      have hnxy : norm (x * y) < 0 := by
+        rw [norm_mul]
+        have := Rat.mul_pos (by grind : 0 < -norm x) hny
+        grind
+      refine Or.inr (Or.inr ⟨hsa, by grind, ?_⟩)
+      have hraw : (x.a * y.a + 2 * (x.b * y.b)) * (x.a * y.a + 2 * (x.b * y.b))
+          - 2 * ((x.a * y.b + x.b * y.a) * (x.a * y.b + x.b * y.a)) < 0 := hnxy
+      grind
+    · -- branch3 + branch3 → branch2
+      obtain ⟨hxa, hxb, hxsq⟩ := hx3
+      obtain ⟨hya, hyb, hysq⟩ := hy3
+      have hxb_pos : 0 < x.b := by
+        rcases Rat.le_iff_lt_or_eq.mp hxb with h' | h'
+        · exact h'
+        · exfalso; have hz : x.b = 0 := h'.symm
+          have hnn : (0 : Rat) ≤ x.a * x.a := sq_nonneg x.a
+          rw [hz] at hxsq; grind
+      have hyb_pos : 0 < y.b := by
+        rcases Rat.le_iff_lt_or_eq.mp hyb with h' | h'
+        · exact h'
+        · exfalso; have hz : y.b = 0 := h'.symm
+          have hnn : (0 : Rat) ≤ y.a * y.a := sq_nonneg y.a
+          rw [hz] at hysq; grind
+      show Pos (⟨x.a * y.a + 2 * (x.b * y.b), x.a * y.b + x.b * y.a⟩ : QS)
+      have hsa : 0 < x.a * y.a + 2 * (x.b * y.b) := by
+        have t1 : 0 < x.a * y.a := by
+          have := Rat.mul_pos (by grind : (0:Rat) < -x.a) (by grind : (0:Rat) < -y.a); grind
+        have t2 : 0 < x.b * y.b := Rat.mul_pos hxb_pos hyb_pos
+        grind
+      have hsb : x.a * y.b + x.b * y.a < 0 := by
+        have t1 : x.a * y.b < 0 := by
+          have := Rat.mul_pos (by grind : (0:Rat) < -x.a) hyb_pos; grind
+        have t2 : x.b * y.a < 0 := by
+          have := Rat.mul_pos hxb_pos (by grind : (0:Rat) < -y.a); grind
+        grind
+      have hnx : norm x < 0 := by show x.a * x.a - 2 * (x.b * x.b) < 0; grind
+      have hny : norm y < 0 := by show y.a * y.a - 2 * (y.b * y.b) < 0; grind
+      have hnxy : 0 < norm (x * y) := by
+        rw [norm_mul]
+        have := Rat.mul_pos (by grind : 0 < -norm x) (by grind : 0 < -norm y)
+        grind
+      refine Or.inr (Or.inl ⟨Rat.le_of_lt hsa, hsb, ?_⟩)
+      have hraw : 0 < (x.a * y.a + 2 * (x.b * y.b)) * (x.a * y.a + 2 * (x.b * y.b))
+          - 2 * ((x.a * y.b + x.b * y.a) * (x.a * y.b + x.b * y.a)) := hnxy
+      grind
+
 end QS
 
 end PrimitiveReflexivity.OrderObstruction
@@ -497,3 +1299,27 @@ end PrimitiveReflexivity.OrderObstruction
 #print axioms PrimitiveReflexivity.OrderObstruction.QS.mul_inv_cancel
 #print axioms PrimitiveReflexivity.OrderObstruction.QS.no_order_retraction_Qsqrt2
 #print axioms PrimitiveReflexivity.OrderObstruction.QS.mono_needed
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.mul_assoc
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.mul_comm
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.one_mul
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.mul_one
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.left_distrib
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.right_distrib
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.add_lt_add_left
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.pos_trichotomy
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.sq_le_sq_of_nonneg
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.sq_lt_sq_of_nonneg
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.le_of_sq_le
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.sqLe_add
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.dominance_mul_lt
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.mixed_not_neg
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.sqLe_add2
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.pos_add_branch1_left
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.pos_add
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.trichotomy
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.transitivity
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.norm_mul
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.pos_scale
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.pos_s_mul
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.pos_mul_branch1_left
+#print axioms PrimitiveReflexivity.OrderObstruction.QS.mul_pos
