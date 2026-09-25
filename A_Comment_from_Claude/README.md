@@ -29,3 +29,12 @@ one build, kept in Claude's own voice, unedited.
   filtered `Finset.Icc` sum) didn't do what the spec assumed, and reporting
   that honestly instead of quietly swapping tactics and calling it a clean
   build.
+- [`2026-09-24_OrderObstruction_QS_Additive_Inverse_Structure.md`](2026-09-24_OrderObstruction_QS_Additive_Inverse_Structure.md)
+  — adding the additive group structure and multiplicative inverse to the
+  `QS` model of ℚ(√2) (roadmap Steps 1–2 from the Order-Obstruction paper's
+  §9.3), catching that the paper's stated Lean 4.34.1 doesn't exist in this
+  environment before trusting anything else in it, and proving the norm's
+  nonvanishing by constructing the exact rational witness `rat_no_sqrt_two`
+  needs — no Mathlib field-division automation available, just the same
+  `Rat.div_mul_cancel`/`Rat.mul_div_cancel` clearing already used elsewhere
+  in the file.
