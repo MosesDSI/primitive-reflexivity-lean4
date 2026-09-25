@@ -73,6 +73,17 @@ on every push.
 
 - `PrimitiveReflexivity/Foundations.lean` — the formalization (the deliverable).
 - `PrimitiveReflexivity/Basic.lean` — unused scaffold file from `lake new`.
+- [`PrimitiveReflexivity/Discrete/OrderObstruction.lean`](PrimitiveReflexivity/Discrete/OrderObstruction.lean)
+  — an order-theoretic obstruction to rational retraction (no order-preserving map from a
+  number system back onto ℚ can fix every rational once that system contains a point
+  incommensurable with ℚ), instantiated concretely as a from-scratch, kernel-verified
+  certified ordered field `QS` modeling ℚ(√2) — field laws, global order, and density, all
+  proved in **bare Lean 4, no Mathlib**, then wired into this project's own `lake build`
+  (part of the `PrimitiveReflexivity` library target, currently 2748/2748 jobs). Verified
+  trust footprint: `[propext, Classical.choice, Quot.sound]` — the same standard base as
+  the rest of this repo, zero `sorryAx`. See
+  [`2026-09-24_OrderObstruction_Density_and_Integration.md`](2026-09-24_OrderObstruction_Density_and_Integration.md)
+  and its companion build summaries for the full development history.
 - `Theorems_Original_and_Adjustments.md` — original theorem code + full adjustment log.
 - `2026-08-28_PrimitiveReflexivity_Lean4_Formalization.md` — build summary / verification record.
 - `ACKNOWLEDGMENTS.md` — authorship and the human–AI formalization pipeline (Jonathon Pearson's
