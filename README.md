@@ -14,6 +14,13 @@ Mathlib rev `0df444a3`. The badge above tracks the same build run on every push,
 GitHub-hosted machine, independent of this author's environment — that's the point of publishing
 it this way: anyone can re-run the exact same check.
 
+**Start here for the full picture:**
+[**`Foundations_of_Primitive_Reflexivity_Verified_Edition.md`**](Foundations_of_Primitive_Reflexivity_Verified_Edition.md)
+walks every theorem across *all four* project trees in this repo — this file, `R3_bare_lean/`,
+`Section_VI_Incommensurability/`, and the companion `Theta__0_Photon/` project — as one narrative,
+with a live link from each theorem straight into the `.lean` file and declaration that proves it.
+This root README covers only `Foundations.lean` itself.
+
 ## What's proved
 
 All theorems live in [`PrimitiveReflexivity/Foundations.lean`](PrimitiveReflexivity/Foundations.lean).
@@ -84,6 +91,13 @@ on every push.
   the rest of this repo, zero `sorryAx`. See
   [`2026-09-24_OrderObstruction_Density_and_Integration.md`](2026-09-24_OrderObstruction_Density_and_Integration.md)
   and its companion build summaries for the full development history.
+- [`PrimitiveReflexivity/Discrete/HarmonicCenter.lean`](PrimitiveReflexivity/Discrete/HarmonicCenter.lean)
+  — discrete harmonic centers: a symmetric center point for the interval `{1,...,2k+1}`, and
+  (for `k=10`) the mod-3 partition class containing that center has the strictly smallest total
+  distance sum among the three classes.
+- [`PrimitiveReflexivity/Geometry/SquareUnfolding.lean`](PrimitiveReflexivity/Geometry/SquareUnfolding.lean)
+  — the boundary of a square unfolds isometrically onto an interval of length `4s`, with edge
+  lengths and corner adjacency preserved exactly.
 - `Theorems_Original_and_Adjustments.md` — original theorem code + full adjustment log.
 - `2026-08-28_PrimitiveReflexivity_Lean4_Formalization.md` — build summary / verification record.
 - `ACKNOWLEDGMENTS.md` — authorship and the human–AI formalization pipeline (Jonathon Pearson's
@@ -104,12 +118,15 @@ its own `README.md` documenting scope and verification tier:
   the Polar and Axial clocks share no common rational measure, connected
   directly to `PhaseDriftMatch`.
 
-A third directory, [`Theta__0_Photon/`](Theta__0_Photon/README.md), extends the
-`metric_independence` diagonal-collapse pattern above with its own Lean 4 + Mathlib
-project — same pinned toolchain and Mathlib revision as this repo — plus a real-valued
-statistical analogue (centered subspace / degrees-of-freedom, diagonal-subspace zero
-variance). See its own `README.md` for what's proved and what the parallel between the
-two does and doesn't establish.
+A third directory, [`Theta__0_Photon/`](Theta__0_Photon/README.md), is its own Lean 4 + Mathlib
+project — same pinned toolchain and Mathlib revision as this repo — that has grown well past its
+original `metric_independence` diagonal-collapse / statistical-analogue starting point: it now also
+proves the `ℚ(√2,√3)` field tower and its Klein four-group of automorphisms, the "Phantom Middle"
+symmetry that fixes exactly the product `√2·√3` (and is the unique non-identity symmetry doing so),
+a triadic-closure result connecting that symmetry back to this repo's own mediator-defect theorems,
+a chiral-sign/orientation law, and a countable/uncountable operational-orthogonality result. See its
+own `README.md` for the full theorem-by-file ledger, or the narrative doc linked above for all of it
+walked together with this project's theorems.
 
 ## License
 

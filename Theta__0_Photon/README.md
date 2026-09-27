@@ -55,14 +55,17 @@ isn't claimed.
 
 Every theorem below is machine-checked with **zero `sorry`**, confirmed via `#print
 axioms` at the time each file was built (or re-confirmed at time of writing). Current
-full-library build: **`lake build Theta0Photon` and `lake build Main` — 2484/2484 jobs
-each, clean, zero warnings** (re-confirmed at time of writing).
+full-library build: **`lake build Theta0Photon Main` — 2630/2630 jobs, clean** (one
+pre-existing, unrelated linter warning on `NavierStokesBridge.validLevel_fintype`'s
+class-definition reducibility — not a proof gap; re-confirmed at time of writing).
 
 | File | Key results | Method | Axiom trust base |
 |---|---|---|---|
 | [`GroundAxiom.lean`](Theta0Photon/Algebra/GroundAxiom.lean) | `triadic_no_rational_root`, `triadic_ground_irreducible` — `X²−n` is irreducible over `ℚ` for any non-square `n` | `irreducible_of_degree_le_three_of_not_isRoot` + `Rat.sqrt_natCast` | `[propext, Classical.choice, Quot.sound]` |
 | [`FieldTower.lean`](Theta0Photon/Algebra/FieldTower.lean) | `sqrt2_finrank`/`sqrt3_finrank` (degree 2 each), `sqrt3_notMem` (√3 ∉ ℚ⟮√2⟯), `sqrt2_sqrt3_finrank` — `[ℚ⟮√2,√3⟯:ℚ] = 4` | Explicit-basis route; `IntermediateField.algHomAdjoinIntegralEquiv`, tower law `finrank_mul_finrank` | `[propext, Classical.choice, Quot.sound]` |
 | [`GaloisGroup.lean`](Theta0Photon/Algebra/GaloisGroup.lean) | `sigma_K`, `tau_K`, `phantom_middle := sigma_K.trans tau_K`; `card_Gal_eq_four`; `instance IsGalois ℚ K`; `instance IsKleinFour (K ≃ₐ[ℚ] K)`; `galoisKleinFourEquiv_phantom_middle` | Explicit `AlgEquiv` construction via `IntermediateField.equivOfEq` (avoiding the `AlgEquiv.refl` auto-closing pitfall — see file docstring); `IsGalois.of_card_aut_eq_finrank` | `[propext, Classical.choice, Quot.sound]` |
+| [`PhantomFixedField.lean`](Theta0Photon/Algebra/PhantomFixedField.lean) | `phantom_middle_fixes_sqrt6K`/`sigma_negates_sqrt6K`/`tau_negates_sqrt6K` — the Phantom Middle fixes exactly `√2·√3`, each single flip negates it; `stabilizer_sqrt6K` — it's the unique non-identity automorphism doing so; `fixedField_phantom_middle` — the Galois fixed field of `⟨π⟩` is `ℚ(√2·√3)`; `phantom_middle_fixed_iff` — elementwise form `a+b·√2·√3` | `map_mul`/`map_add` pushed through `phantom_middle_sqrt2`/`phantom_middle_sqrt3`; `IntermediateField.finrank_fixedField_eq_card` + tower law for the Galois-correspondence degree count; a `{1,√6}`-basis argument mirroring `FieldTower.sqrt2_field_eq` | `[propext, Classical.choice, Quot.sound]` |
+| [`PhantomTriadicBridge.lean`](Theta0Photon/Algebra/PhantomTriadicBridge.lean) | `phantom_middle_preserves_the_triadic_product`, `phantom_middle_reverses_the_triadic_sum` — the Phantom Middle acts on the `2`/`3` triadic states exactly along `TriadicClosure.lean`'s multiplicative-exact/additive-defective split: fixes the product's axial coordinate, negates the sum's | Definitional unfolding of `TriadicNat.mk'`/`mul_componentwise`/`add_componentwise` against `PhantomFixedField.lean`'s theorems; no cross-project Lake dependency needed | `[propext, Classical.choice, Quot.sound]` |
 | [`ChiralSign.lean`](Theta0Photon/Geometry/ChiralSign.lean) | `chiral_sign_law` (= Mathlib's `Matrix.det_permute`, restated); `transposition_flips_orientation`; `canonicalOrbitMatrix_det = -21` reproved inside Lean's kernel | `Matrix.det_permute`, `Matrix.det_fin_three`, exhaustive `decide` over `S₃`'s 6 elements for `fin3_isOdd_iff_isSwap` | `[propext, Classical.choice, Quot.sound]` |
 | [`Incommensurability.lean`](Theta0Photon/SetTheory/Incommensurability.lean) | `isEmpty_structurePreserving_of_operationallyOrthogonal` (general, any predicate); `isEmpty_equiv_K_real` — no bijection `K ≃ ℝ` exists, `K = ℚ⟮√2,√3⟯` from the field tower | Cardinality argument via `Function.Injective.countable`/`Uncountable`; `K`'s countability transported from `finrank ℚ K = 4` via `Module.finBasis` | `[propext, Classical.choice, Quot.sound]` |
 | [`TriadicClosure.lean`](Theta0Photon/Algebra/TriadicClosure.lean) | `mediator_defect_positive` (re-derived from `PrimitiveReflexivity/Foundations.lean`, 2026-08-28); `triadic_multiplication_closed` (exact); `triadic_addition_not_closed`; `π`, `projection_commutes_on_n`, `correction_identity` | AM-GM-style squaring argument; `Real.sqrt_mul`; direct `rw`/`ring` on the exact correction quantity | `[propext, Classical.choice, Quot.sound]` |
@@ -113,12 +116,19 @@ permutations of `v`'s entries):
 1. [`Theta0Photon/Algebra/GroundAxiom.lean`](Theta0Photon/Algebra/GroundAxiom.lean)
 2. [`Theta0Photon/Algebra/FieldTower.lean`](Theta0Photon/Algebra/FieldTower.lean)
 3. [`Theta0Photon/Algebra/GaloisGroup.lean`](Theta0Photon/Algebra/GaloisGroup.lean)
-4. [`Theta0Photon/Geometry/ChiralSign.lean`](Theta0Photon/Geometry/ChiralSign.lean)
-5. [`Theta0Photon/SetTheory/Incommensurability.lean`](Theta0Photon/SetTheory/Incommensurability.lean)
-6. [`Theta0Photon/Algebra/TriadicClosure.lean`](Theta0Photon/Algebra/TriadicClosure.lean)
-7. [`Theta0Photon/Algebra/UniquenessTest.lean`](Theta0Photon/Algebra/UniquenessTest.lean)
-8. [`Theta0Photon/Documentation/CoreAxioms.md`](Theta0Photon/Documentation/CoreAxioms.md) (documentation, not code)
-9. [`Theta0Photon/Basic.lean`](Theta0Photon/Basic.lean) / [`Theta0Photon/Statistics/CenteredKernel.lean`](Theta0Photon/Statistics/CenteredKernel.lean) — earlier, independent modules (see "What's proved" below)
+4. [`Theta0Photon/Algebra/PhantomFixedField.lean`](Theta0Photon/Algebra/PhantomFixedField.lean)
+5. [`Theta0Photon/Geometry/ChiralSign.lean`](Theta0Photon/Geometry/ChiralSign.lean)
+6. [`Theta0Photon/SetTheory/Incommensurability.lean`](Theta0Photon/SetTheory/Incommensurability.lean)
+7. [`Theta0Photon/Algebra/TriadicClosure.lean`](Theta0Photon/Algebra/TriadicClosure.lean)
+8. [`Theta0Photon/Algebra/PhantomTriadicBridge.lean`](Theta0Photon/Algebra/PhantomTriadicBridge.lean) (needs 4 and 7)
+9. [`Theta0Photon/Algebra/UniquenessTest.lean`](Theta0Photon/Algebra/UniquenessTest.lean)
+10. [`Theta0Photon/NavierStokes/ContinuumBridge.lean`](Theta0Photon/NavierStokes/ContinuumBridge.lean) (needs 6)
+11. [`Theta0Photon/Documentation/CoreAxioms.md`](Theta0Photon/Documentation/CoreAxioms.md) (documentation, not code)
+12. [`Theta0Photon/Basic.lean`](Theta0Photon/Basic.lean) / [`Theta0Photon/Statistics/CenteredKernel.lean`](Theta0Photon/Statistics/CenteredKernel.lean) — earlier, independent modules (see "What's proved" below)
+
+See [`Foundations_of_Primitive_Reflexivity_Verified_Edition.md`](../Foundations_of_Primitive_Reflexivity_Verified_Edition.md)
+(§11–12 in particular) for these walked together with the parent `PrimitiveReflexivity/` project's
+own theorems, as one narrative.
 
 **Python verification scripts:**
 - [`../S3_Trajectory_Verification/verify_s3_trajectory_matrix.py`](../S3_Trajectory_Verification/verify_s3_trajectory_matrix.py)
