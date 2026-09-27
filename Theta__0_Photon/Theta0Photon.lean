@@ -6,6 +6,7 @@ import Theta0Photon.Geometry.ChiralSign
 import Theta0Photon.Algebra.GroundAxiom
 import Theta0Photon.Algebra.FieldTower
 import Theta0Photon.Algebra.GaloisGroup
+import Theta0Photon.Algebra.PhantomFixedField
 import Theta0Photon.SetTheory.Incommensurability
 import Theta0Photon.Algebra.TriadicClosure
 import Theta0Photon.Algebra.UniquenessTest
