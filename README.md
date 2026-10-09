@@ -100,6 +100,16 @@ on every push.
   lengths and corner adjacency preserved exactly.
 - `Theorems_Original_and_Adjustments.md` — original theorem code + full adjustment log.
 - `2026-08-28_PrimitiveReflexivity_Lean4_Formalization.md` — build summary / verification record.
+- [`Instructure_Formal_Definition.md`](Instructure_Formal_Definition.md) — companion definition of
+  an instructure: a finite integer datum whose self-relations generate an exact arithmetic, a Klein
+  four-type symmetry group, and a family of simulations, one per orientation. Its own
+  verification-status table separates what's Lean-verified (ground-axiom irreducibility, the
+  `(2,3)` Phantom Middle instance) from what's standard-but-unformalized (the general-`k` field
+  tower, Kronecker density, the decidability procedure).
+- [`Simulation_Formal_Definition.md`](Simulation_Formal_Definition.md) — companion definition of a
+  simulation: a discrete carrier rendered equivariantly, faithfully, and densely into a phase space
+  it can never realize, with non-realization resting on this repo's verified
+  operational-orthogonality theorem (§12).
 - `ACKNOWLEDGMENTS.md` — authorship and the human–AI formalization pipeline (Jonathon Pearson's
   paper → Gemini's initial Lean translation → Claude Code's environment setup and proof repair),
   plus a note on what "verified" does and doesn't establish.

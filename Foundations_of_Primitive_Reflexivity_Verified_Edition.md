@@ -11,6 +11,16 @@ Jonathon Pearson · September 2026
 > is the one kept current, since it renders in-browser here and its citations are
 > live links into the code. Revision 3 adds `PhantomFixedField.lean` and
 > `PhantomTriadicBridge.lean` (§11.6, §11.10), which postdate Revision 2.
+>
+> Two companion documents extend this paper's definitions beyond what is
+> formalized here: [`Instructure_Formal_Definition.md`](Instructure_Formal_Definition.md)
+> defines the finite integer datum that generates a Galois-permuted family of
+> simulations, and [`Simulation_Formal_Definition.md`](Simulation_Formal_Definition.md)
+> defines the rendering each orientation of that datum produces. Both build on
+> theorems verified here (notably §11's Phantom Middle and §12's
+> operational-orthogonality theorem) but introduce their own conditions that
+> are not yet formalized in Lean — each document's own verification-status
+> table says exactly which.
 
 ---
 
