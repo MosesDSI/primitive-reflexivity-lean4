@@ -65,8 +65,10 @@ Middle" element is shown to fix *exactly* the product `√2·√3`, to be the
 unique non-identity automorphism doing so, and to act on the triadic states of
 `2` and `3` in line with the split the triad itself draws between exact
 multiplicative closure and defective additive closure — it fixes the product
-coordinate `√2·√3` and reverses the sum coordinate `√2+√3`. (This is proved for
-the pair `(2,3)` only; see §11.10 for its scope.) Finally, we verify that discrete and continuum are
+coordinate `√2·√3` and reverses the sum coordinate `√2+√3`. (Proved for the
+canonical pair `(2,3)`, and, as of a later Lean development documented in
+`ROADMAP_LEDGER.md`, for any independent pair `(d₁,d₂)` with `d₁`, `d₂`, and
+`d₁·d₂` all non-square; see §11.10 for its scope.) Finally, we verify that discrete and continuum are
 operationally orthogonal: no bijection of any kind exists between a countable
 carrier and `ℝ` or `ℝ³`, while on a lattice with minimum spacing difference
 quotients stay uniformly bounded and geometric refinement by `1/√2` has only
@@ -514,10 +516,11 @@ Lean: `const_one_satisfies_both_conditions` · [`UniquenessTest.lean`](Theta__0_
 > weight (9.5). Classical `ℕ` is the projection `π` of the triad: it sees
 > addition correctly on the count alone, and the one quantity it discards is
 > the mediator defect (9.11). **§11.10 relates this split to the Galois
-> group of §11 for the pair `(2,3)`: the Phantom Middle fixes the product
-> coordinate `√2·√3`, where the triad closes exactly, and negates the sum
-> coordinate `√2+√3`, where the defect arises. It also negates `√2` and `√3`
-> individually.**
+> group of §11, for the canonical pair `(2,3)` and, more generally, for any
+> independent pair `(d₁,d₂)`: the Phantom Middle fixes the product
+> coordinate `√d₁·√d₂`, where the triad closes exactly, and negates the sum
+> coordinate `√d₁+√d₂`, where the defect arises. It also negates `√d₁` and
+> `√d₂` individually.**
 
 ## 10. Discrete Harmonic Centers
 
@@ -586,6 +589,18 @@ Lean: `phantom_middle_fixes_sqrt6K` ([L72](Theta__0_Photon/Theta0Photon/Algebra/
 `fixedField_phantom_middle` ([L175](Theta__0_Photon/Theta0Photon/Algebra/PhantomFixedField.lean#L175))
 · [`PhantomFixedField.lean`](Theta__0_Photon/Theta0Photon/Algebra/PhantomFixedField.lean)
 
+**Generalized.** (a)–(d) above are stated for the canonical pair `(2,3)`.
+A later Lean development ([`ROADMAP_LEDGER.md`](ROADMAP_LEDGER.md) tracks it)
+reproves the same four facts — Galois group, Klein four structure, and the
+Phantom Middle's fixed field — for *any* independent pair `(d₁,d₂)` with
+`d₁`, `d₂`, and `d₁·d₂` all non-square, with the `(2,3)` case recovered as a
+sanity check against the declarations above, not reproved separately.
+Lean: `GeneralGaloisGroup.card_Gal_eq_four`, `isGalois_K`, `isKleinFour_K`
+· [`GeneralGaloisGroup.lean`](Theta__0_Photon/Theta0Photon/Algebra/GeneralGaloisGroup.lean);
+`GeneralPhantomFixedField.stabilizer_sqrt_prod`, `fixedField_phantom_middle`,
+`phantom_middle_fixed_iff`
+· [`GeneralPhantomFixedField.lean`](Theta__0_Photon/Theta0Photon/Algebra/GeneralPhantomFixedField.lean)
+
 **Theorem 11.7 (Chiral Sign Law).** For any 3×3 matrix `M` over a
 commutative ring and any permutation `σ` of its rows,
 `det(σM) = sign(σ)·det(M)`.
@@ -612,26 +627,37 @@ the first (11.6a) and sends the second to its negation. The product
 coordinate is exactly closed (9.7); the sum coordinate falls short of `√5` by
 the strictly positive mediator defect `ℰ(2,3) = √2+√3−√5` (9.4).
 
-*Scope.* This is proved for the pair `(2,3)` only, as the Lean file's own
-docstring states. The Phantom Middle acts on the sum coordinate `√2+√3`, which
-lies in `K`; it does not act on the defect itself, since `√5 ∉ K` (a standard
-fact about `K`, not among the Lean results).
+*Scope.* As stated — with the concrete numbers `2`, `3`, `5` — this is proved
+for the pair `(2,3)` only, per `PhantomTriadicBridge.lean`'s own docstring.
+The Phantom Middle acts on the sum coordinate `√2+√3`, which lies in `K`; it
+does not act on the defect itself, since `√5 ∉ K` (a standard fact about `K`,
+not among the Lean results, and specific to this numeral instance — it is not
+claimed to generalize, since `√(d₁+d₂) ∉ ℚ(√d₁,√d₂)` is not true for every
+independent pair). The *shape* of the result — product fixed, sum reversed —
+is proved for every independent pair `(d₁,d₂)` in `GeneralPhantomTriadicBridge.lean`
+(see the Generalized note under Theorem 11.6); only the numeral-specific
+defect/`√5` observation above is tied to `(2,3)`.
 
 Lean: `triadic_product_two_three_eq_sqrt6K` ([L56](Theta__0_Photon/Theta0Photon/Algebra/PhantomTriadicBridge.lean#L56)),
 `phantom_middle_preserves_the_triadic_product` ([L76](Theta__0_Photon/Theta0Photon/Algebra/PhantomTriadicBridge.lean#L76)),
 `phantom_middle_reverses_the_triadic_sum` ([L86](Theta__0_Photon/Theta0Photon/Algebra/PhantomTriadicBridge.lean#L86))
-· [`PhantomTriadicBridge.lean`](Theta__0_Photon/Theta0Photon/Algebra/PhantomTriadicBridge.lean)
+· [`PhantomTriadicBridge.lean`](Theta__0_Photon/Theta0Photon/Algebra/PhantomTriadicBridge.lean);
+general form — `phantom_middle_preserves_the_triadic_product`,
+`phantom_middle_reverses_the_triadic_sum`
+· [`GeneralPhantomTriadicBridge.lean`](Theta__0_Photon/Theta0Photon/Algebra/GeneralPhantomTriadicBridge.lean)
 
 > **Interpretation.** Irreducibility of `x²−n` is the ground from which
 > every quadratic mediator `√n` enters as a genuinely new element. Two
 > independent mediators generate a four-element symmetry group of sign
 > flips. Within that group, the Phantom Middle is the *unique* non-trivial
-> symmetry that fixes their product (11.6b) — on the pair
-> `(2,3)` it acts as the identity on the product coordinate, where the triad
-> closes exactly, and as negation on the sum coordinate, where it does not
-> (11.10). Since it also negates `√2` and `√3` individually, the negation is not
-> specific to the defect; what is specific is that the product of the two
-> negated generators is fixed. The Phantom Middle is an automorphism of `K`,
+> symmetry that fixes their product (11.6b) — on the canonical pair `(2,3)`,
+> and on every independent pair `(d₁,d₂)` more generally, it acts as the
+> identity on the product coordinate, where the triad closes exactly, and as
+> negation on the sum coordinate, where it does not (11.10). Since it also
+> negates `√2` and `√3` individually (`√d₁` and `√d₂`, in the general form),
+> the negation is not specific to the defect; what is specific is that the
+> product of the two negated generators is fixed. The Phantom Middle is an
+> automorphism of `K`,
 > not of `ℝ` (which has no non-identity field automorphisms; a standard fact,
 > not among the Lean results), so the bridge works by restricting the
 > real-valued axial coordinates to the countable subfield `K`. `TriadicClosure.lean`'s triadic machinery and
@@ -725,8 +751,10 @@ non-square `n`, every `ℚ(√n)` has degree 2, and `ℚ(√2,√3)` has degree 
 a Klein four symmetry whose composite flip is the Phantom Middle; determinants
 of triadic matrices carry a chiral sign (§11). The triad is exactly closed
 under multiplication, and classical `ℕ` is its projection, discarding
-precisely the mediator defect (§9) — **and, for the pair `(2,3)`, the Phantom Middle respects that same split:
-it fixes the product coordinate and reverses the sum coordinate (§11.10).**
+precisely the mediator defect (§9) — **and, for the canonical pair `(2,3)`
+and for any independent pair `(d₁,d₂)` more generally, the Phantom Middle
+respects that same split: it fixes the product coordinate and reverses the
+sum coordinate (§11.10).**
 Discrete and continuum admit no bijection of any kind, while the discrete
 side carries bounded gradients and finitely many refinement levels (§12).
 
@@ -792,9 +820,13 @@ lake build
 | 10.2–10.4 | `harmonic_distance_symmetry`, `harmonic_center_in_C2`, `tri_partition_distance_sums` | [`HarmonicCenter.lean`](PrimitiveReflexivity/Discrete/HarmonicCenter.lean) | 1 |
 | 11.1 | `triadic_no_rational_root`, `triadic_ground_irreducible` | [`GroundAxiom.lean`](Theta__0_Photon/Theta0Photon/Algebra/GroundAxiom.lean) | 1 |
 | 11.2–11.4 | `sqrt_finrank`, `sqrt2_field_eq`, `sqrt3_notMem`, `sqrt2_sqrt3_finrank` | [`FieldTower.lean`](Theta__0_Photon/Theta0Photon/Algebra/FieldTower.lean) | 1 |
+| 11.2–11.4, generalized | `sqrt_field_eq`, `sqrt_notMem`, `sqrt_sqrt_finrank`, for any independent pair `(d₁,d₂)` | [`GeneralFieldTower.lean`](Theta__0_Photon/Theta0Photon/Algebra/GeneralFieldTower.lean) | 1 |
 | 11.5 | `card_Gal_eq_four`, `IsGalois`, `IsKleinFour` | [`GaloisGroup.lean`](Theta__0_Photon/Theta0Photon/Algebra/GaloisGroup.lean) | 1 |
+| 11.5, generalized | `card_Gal_eq_four`, `isGalois_K`, `isKleinFour_K`, for any independent pair | [`GeneralGaloisGroup.lean`](Theta__0_Photon/Theta0Photon/Algebra/GeneralGaloisGroup.lean) | 1 |
 | 11.6 | `phantom_middle`, `phantom_middle_sqrt2`, `galoisKleinFourEquiv_phantom_middle` (a); `phantom_middle_fixes_sqrt6K`, `sigma_negates_sqrt6K`, `tau_negates_sqrt6K`, `stabilizer_sqrt6K`, `phantom_middle_fixed_iff`, `fixedField_phantom_middle` (b–d) | [`GaloisGroup.lean`](Theta__0_Photon/Theta0Photon/Algebra/GaloisGroup.lean), [`PhantomFixedField.lean`](Theta__0_Photon/Theta0Photon/Algebra/PhantomFixedField.lean) | 1 |
+| 11.6, generalized | `phantom_middle`, `sigma_negates_sqrt_prod`, `tau_negates_sqrt_prod`, `stabilizer_sqrt_prod`, `phantom_middle_fixed_iff`, `fixedField_phantom_middle`, for any independent pair | [`GeneralGaloisGroup.lean`](Theta__0_Photon/Theta0Photon/Algebra/GeneralGaloisGroup.lean), [`GeneralPhantomFixedField.lean`](Theta__0_Photon/Theta0Photon/Algebra/GeneralPhantomFixedField.lean) | 1 |
 | 11.7–11.8 | `chiral_sign_law`, `transposition_flips_orientation`, `fin3_isOdd_iff_isSwap`, `canonicalOrbitMatrix_det` | [`ChiralSign.lean`](Theta__0_Photon/Theta0Photon/Geometry/ChiralSign.lean) | 1 |
 | 11.10 | `triadic_product_two_three_eq_sqrt6K`, `phantom_middle_preserves_the_triadic_product`, `phantom_middle_reverses_the_triadic_sum` | [`PhantomTriadicBridge.lean`](Theta__0_Photon/Theta0Photon/Algebra/PhantomTriadicBridge.lean) | 1 |
+| 11.10, generalized | `phantom_middle_preserves_the_triadic_product`, `phantom_middle_reverses_the_triadic_sum`, for any independent pair | [`GeneralPhantomTriadicBridge.lean`](Theta__0_Photon/Theta0Photon/Algebra/GeneralPhantomTriadicBridge.lean) | 1 |
 | 12.1–12.3 | `OperationallyOrthogonal`, `isEmpty_structurePreserving_of_operationallyOrthogonal`, `isEmpty_monotone_equiv_nat_real`, `isEmpty_equiv_K_real` | [`Incommensurability.lean`](Theta__0_Photon/Theta0Photon/SetTheory/Incommensurability.lean) | 1 |
 | 12.4–12.7 | `continuous_fluid_embedding_empty`, `discrete_lattice_prevents_gradient_blowup`, `validLevel_finite`, `exists_isMaxValidLevel`, `gradient_bound_at_max_valid_level` | [`ContinuumBridge.lean`](Theta__0_Photon/Theta0Photon/NavierStokes/ContinuumBridge.lean) | 1 |
