@@ -13,5 +13,6 @@ import Theta0Photon.Algebra.GeneralPhantomFixedField
 import Theta0Photon.SetTheory.Incommensurability
 import Theta0Photon.Algebra.TriadicClosure
 import Theta0Photon.Algebra.PhantomTriadicBridge
+import Theta0Photon.Algebra.GeneralPhantomTriadicBridge
 import Theta0Photon.Algebra.UniquenessTest
 import Theta0Photon.NavierStokes.ContinuumBridge
