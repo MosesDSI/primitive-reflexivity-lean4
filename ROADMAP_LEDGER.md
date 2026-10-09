@@ -29,7 +29,18 @@ push.
 | `Theta__0_Photon/.../PhantomFixedField.lean` | The Phantom Middle fixes exactly `√2·√3`; it's the unique non-identity automorphism doing so; its fixed field is `ℚ(√2·√3)`, elementwise form `a+b·√2·√3` |
 | `Theta__0_Photon/.../PhantomTriadicBridge.lean` | For the pair `(2,3)` only: the Phantom Middle fixes the triadic product coordinate and negates the triadic sum coordinate |
 | `Theta__0_Photon/.../ChiralSign.lean`, `TriadicClosure.lean`, `Incommensurability.lean`, `ContinuumBridge.lean`, `CenteredKernel.lean` | Determinant sign under row permutation; exact multiplicative / defective additive triadic closure; countable↔uncountable operational orthogonality; `ℝ³` has no structure-preserving lattice bijection |
+| `Theta__0_Photon/.../GeneralFieldTower.lean` | **New.** `[ℚ(√d₁,√d₂):ℚ]=4` and `√d₂∉ℚ(√d₁)` for *any* independent non-square pair `(d₁,d₂)`, not just `(2,3)` — generalizes `FieldTower.lean`'s §2–§3 |
+| `Theta__0_Photon/.../GeneralGaloisGroup.lean` | **New.** `Gal(ℚ(√d₁,√d₂)/ℚ)≅V₄` for any independent pair; `sigma_K`, `tau_K`, `phantom_middle` constructed parametrically; `isGalois_K`/`isKleinFour_K` as theorems (not `instance`s — see the file's own docstring for why) |
+| `Theta__0_Photon/.../GeneralPhantomFixedField.lean` | **New.** The Phantom Middle's fixed field is `ℚ(√d₁·√d₂)` for any independent pair; `stabilizer_sqrt_prod` (uniqueness), `phantom_middle_fixed_iff` (elementwise form) |
+| `Theta__0_Photon/.../GeneralPhantomTriadicBridge.lean` | **New.** The Phantom Middle fixes the triadic product coordinate and reverses the sum coordinate, for any independent pair — not just `(2,3)` |
 | `R3_bare_lean/`, `Section_VI_Incommensurability/` | Standalone, no-axiom: A-metric independence across metric/order/algebraic decorations; Polar/Axial clock incommensurability |
+
+Each of the four new files carries a `(2,3)`-instantiated sanity-check theorem,
+checked at the exact same type as the original `(2,3)`-only file's own
+declarations (not just a matching numeral), confirming the generalization
+doesn't silently diverge from the instance it generalizes. All four build
+clean with trust footprint `[propext, Classical.choice, Quot.sound]` — see
+commits `b5d1ceb`, `4ab9eca`, `2e992e4`, `95bc4a1`.
 
 **Everything in this tier is real, re-runnable, kernel-checked mathematics.**
 It is also, by construction, narrower than the claims built on top of it —
@@ -55,7 +66,14 @@ coherence, not Lean backing.
   it on Tier-1 grounds that don't apply to an Interpretation box.
 - **Classical `ℕ` as projection.** §9's reading of `π` as the operation that
   sees the count correctly and discards exactly the mediator defect, with
-  §11.10 relating that split to the Phantom Middle for `(2,3)`.
+  §11.10 relating that split to the Phantom Middle for `(2,3)`. **Stale as of
+  the Tier 3→1 promotion below:** the Verified Edition's own prose (§9, §11.10,
+  the README theorem ledgers) still says "for the pair `(2,3)`" throughout,
+  which is no longer the tightest true statement now that
+  `GeneralPhantomTriadicBridge.lean` proves the same split for every
+  independent pair. Updating the main paper's prose to match is its own
+  separate task (see Next Upgrade Targets) — not done as part of this
+  ledger/Instructure-table update.
 - **The instructure/reflexivity parallel.** `Instructure_Formal_Definition.md`'s
   "Reflexive reading" box: each generator's `xᵢ·xᵢ=dᵢ` read as a self-relation
   in the same sense as `x ℛ x`.
@@ -69,22 +87,28 @@ the Instructure refinement were both about.
 ## Tier 3 — Generalization Layer
 
 `Instructure_Formal_Definition.md` and `Simulation_Formal_Definition.md`.
-These take the one Lean-verified instance (`(2,3)`) and state it as a general
-framework. Each document's own verification-status table is the authority
-here; this is a condensed cross-reference.
+Originally, these took the one Lean-verified instance (`(2,3)`) and stated it
+as a general framework with every cell but `(2,3)` empty. The two-generator
+Galois ladder has since been promoted to Tier 1 (below); what's left in Tier 3
+is general-`k` (`k>2`) and the `Simulation` side's conditions. Each document's
+own verification-status table is the authority here; this is a condensed
+cross-reference.
 
 | Claim | Status |
 |---|---|
 | `k`-generator instructure `I=(d₁,…,dₖ)`, independence condition | Framework definition, not a theorem |
-| `K_I` has degree `2ᵏ`, `G_I≅(ℤ/2)ᵏ`, for general `k` | **Standard; not formalized** |
-| Galois ladder (instructure / mediator `⟨π⟩` / simulation, fixed fields `ℚ`, `ℚ(√(d₁d₂))`, `K_I`) | **Verified only for `(d₁,d₂)=(2,3)`**, via `fixedField_phantom_middle`, `stabilizer_sqrt6K` |
+| `K_I` has degree `2ᵏ`, `G_I≅(ℤ/2)ᵏ`, for `k=2` (any independent pair) | **Promoted to Tier 1** — `GeneralFieldTower.sqrt_sqrt_finrank`, `GeneralGaloisGroup.card_Gal_eq_four`/`isKleinFour_K` |
+| `K_I` has degree `2ᵏ`, `G_I≅(ℤ/2)ᵏ`, for general `k>2` | **Standard; not formalized** — the one piece of the original 4-step plan genuinely left open |
+| Galois ladder (instructure / mediator `⟨π⟩` / simulation, fixed fields `ℚ`, `ℚ(√(d₁d₂))`, `K_I`), for `k=2` | **Promoted to Tier 1** — `GeneralPhantomFixedField.fixedField_phantom_middle`, `stabilizer_sqrt_prod`, for any independent pair, not just `(2,3)` |
+| Triadic product/sum split vs. the Phantom Middle, for `k=2` | **Promoted to Tier 1** — `GeneralPhantomTriadicBridge.lean`, for any independent pair |
 | Simulation 5-tuple `(Λ,s,Φ,F,ρ)`, conditions (S1)–(S4) | Framework definition, not a theorem |
 | (S1) equivariance, (S2) faithfulness, (S4) non-realization, for the `√30/√33` trap | Not formalized; "quick target" per the Simulation doc's own table |
 | (S3) density via Kronecker | **Standard; not formalized**, for the trap or in general |
 
-Tier 3 is, honestly, a roadmap disguised as a definition: it's the shape a
-future Lean development would fill, with the `(2,3)` case as the only
-currently-occupied cell.
+Tier 3 is still honestly a roadmap disguised as a definition — it's the shape
+a future Lean development fills in — but three of its original cells (the
+`k=2` Galois ladder, including the triadic bridge) are no longer empty, and
+are tracked under Tier 1 now instead of here.
 
 ---
 
@@ -109,47 +133,58 @@ The `√30`/`√33` worked example (Instructure doc, "Worked example" section).
 
 ---
 
+## Completed: the `(2,3)` → any-independent-pair generalization
+
+The four-step plan below **is done** (commits `b5d1ceb`, `4ab9eca`,
+`2e992e4`, `95bc4a1`). Kept here, marked complete, as the record of how it
+went rather than deleted, since the engineering snags (not the math) are the
+part worth remembering.
+
+1. ✅ **Field tower** — `GeneralFieldTower.lean`: `√d₂∉ℚ(√d₁)` and
+   `[ℚ(√d₁,√d₂):ℚ]=4` for any independent pair. Straightforward
+   reparametrization of `FieldTower.lean`'s §2–§3.
+2. ✅ **Galois group construction** — `GeneralGaloisGroup.lean`: `σ`, `τ`,
+   `phantom_middle` built parametrically, same explicit-`AlgEquiv` pattern as
+   `GaloisGroup.lean`. `isGalois_K`/`isKleinFour_K` are theorems, not
+   `instance`s, since Lean can't discharge `¬IsSquare d₁` on its own for a
+   free `d₁` the way it can for the literal `2`.
+3. ✅ **Fixed-field result** — `GeneralPhantomFixedField.lean`:
+   `fixedField_phantom_middle`/`stabilizer_sqrt_prod` for any independent
+   pair, same `map_mul`-through-flip-lemmas argument.
+4. ✅ **Triadic bridge** — `GeneralPhantomTriadicBridge.lean`: close to pure
+   wiring, as anticipated — `TriadicClosure.lean` was already general in `n`.
+
+Every step really was a reparametrization, not new mathematical content — the
+actual friction was Lean plumbing (a scripted rename clobbering an unrelated
+Mathlib named argument, `variable`/`include` scoping rules, a `simp`
+recursion-depth blowup), not the proofs themselves. All four files carry a
+`(2,3)`-instantiated sanity check against the original file's own
+declarations, and all build with trust footprint
+`[propext, Classical.choice, Quot.sound]`, zero `sorryAx`.
+
 ## Next Upgrade Targets
 
-The single highest-leverage move available is collapsing Tier 3's `(2,3)`
-special case into a general theorem, which would promote the Galois-ladder
-row above from Tier 3 to Tier 1 for every independent pair, not just one.
+With the `k=2` ladder done, three targets remain open, roughly in order of
+tractability:
 
-**Target: generalize `GaloisGroup.lean` and `PhantomFixedField.lean` from
-`(2,3)` to any independent non-square pair `(p,q)`.**
-
-Concretely, in dependency order:
-
-1. **Generalize the field tower.** `FieldTower.lean`'s `sqrt3_notMem` and
-   `sqrt2_sqrt3_finrank` are proved for the fixed pair `(2,3)`. The needed
-   generalization is: for non-square `p`, non-square `q`, and `p·q`
-   non-square, `√q ∉ ℚ(√p)` and `[ℚ(√p,√q):ℚ]=4`. The proof shape (tower law
-   + the existing `triadic_ground_irreducible`/`sqrt_finrank` machinery) is
-   already in the repo for the `(2,3)` instance; this step is re-deriving it
-   parametrically rather than inventing a new argument.
-2. **Generalize the Galois group construction.** `GaloisGroup.lean`'s `σ`,
-   `τ`, `phantom_middle`, and `card_Gal_eq_four`/`IsKleinFour` are built via
-   explicit `IntermediateField.equivOfEq` constructions specific to `K`. These
-   need to become a parametrized construction `σ_{p,q}`, `τ_{p,q}`,
-   `phantom_middle_{p,q}` over the field from step 1, with the same explicit
-   `AlgEquiv` pattern (the file's own docstring already documents why the
-   naive `AlgEquiv.refl`-based shortcut doesn't work — that caution carries
-   over unchanged).
-3. **Generalize the fixed-field result.** `PhantomFixedField.lean`'s
-   `sqrt6K`/`stabilizer_sqrt6K`/`fixedField_phantom_middle` machinery
-   generalizes to `sqrt_{pq}K := √p·√q` and a parametrized stabilizer/fixed-
-   field pair, following the same `map_mul`-pushed-through-flip-lemmas
-   argument used for `(2,3)`.
-4. **(Optional, lower priority) Generalize the triadic bridge.**
-   `PhantomTriadicBridge.lean` is already explicitly scoped to `(2,3)` by its
-   own docstring; extending it to arbitrary `(p,q)` would require
-   `TriadicClosure.lean`'s machinery to also be read for general `n,m`, which
-   it already supports — so this step is mostly wiring, not new math.
-
-Each step is a reparametrization of an existing, working proof — not new
-mathematical content — which is what makes this the most tractable path from
-Tier 3 to Tier 1 on the board right now. Completing steps 1–3 would let
-`Instructure_Formal_Definition.md`'s verification table replace "Standard;
-not formalized" with a real Lean citation for the general-`k=2` Galois
-ladder, and would be the natural prerequisite for tackling general `k>2`
-afterward.
+1. **Kronecker density (S3).** Needed for the Simulation side's density
+   condition, for the trap or in general. Standard, not yet formalized —
+   likely the next-easiest real theorem on the board, since Mathlib has some
+   multi-dimensional equidistribution machinery to build on.
+2. **Formalize the trap's exact-decidability procedure (N4) in Lean.**
+   Currently implemented and tested only in JavaScript — the one piece of the
+   whole project whose correctness rests on an external test run rather than
+   a kernel check. Porting the integer-tightening procedure into Lean (even
+   just for the `(30,33)` instance) would close that gap.
+3. **Generalize `k=2` to general `k`.** Unlike steps 1–4 above, this is a
+   genuinely new argument, not a reparametrization: it needs an inductive
+   construction of the `2ᵏ`-element sign-flip group and a degree argument by
+   induction on `k`, rather than copying the two-generator proof shape.
+   Higher effort, lower immediate payoff than the first two targets.
+4. **Documentation debt.** The main Verified Edition paper's §9 and §11.10,
+   and both READMEs' theorem ledgers, still describe the Phantom
+   Middle/triadic connection as holding "for the pair `(2,3)`" — true of what
+   `PhantomTriadicBridge.lean` proves, no longer the tightest true statement
+   given `GeneralPhantomTriadicBridge.lean`. Updating that prose is a
+   separate, deliberate editorial pass (in the spirit of the
+   `prose-accuracy-pass` branch), not a side effect of adding new Lean files.

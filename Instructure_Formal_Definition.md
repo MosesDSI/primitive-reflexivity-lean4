@@ -134,9 +134,13 @@ orientation.
 | Mediator (Phantom Middle `π`) | The subgroup `⟨π⟩` | `ℚ(√(d₁d₂))` | Partly: blind to flipping both |
 | Simulation | Only the identity | `K_I`, rendered through `ι` | Yes |
 
-The middle row is verified for `(d₁, d₂) = (2, 3)` by `fixedField_phantom_middle`
-and `stabilizer_sqrt6K`: the Phantom Middle fixes exactly `ℚ(√6)`, and it is
-the unique non-identity symmetry preserving `√2 · √3`.
+The middle row is now verified for **every** independent pair `(d₁, d₂)` by
+`GeneralPhantomFixedField.fixedField_phantom_middle` and `stabilizer_sqrt_prod`:
+the Phantom Middle fixes exactly `ℚ(√d₁·√d₂)`, and it is the unique
+non-identity symmetry preserving `√d₁ · √d₂`. The `(2,3)` instance —
+`fixedField_phantom_middle` and `stabilizer_sqrt6K` fixing exactly `ℚ(√6)` —
+is recovered as a sanity check of the general theorem, not reproved
+separately.
 
 ## Oriented instructures and the screw
 
@@ -191,17 +195,23 @@ Every exact decision the trap makes is executed from the two integers 30 and
 |---|---|
 | Non-square `d` makes `x² − d` irreducible (N5) | Verified for every non-square `d`: `triadic_ground_irreducible` |
 | Each `ℚ(√d)` has degree 2 | Verified for every non-square `d`: `sqrt_finrank` |
-| Degree 4 and Klein four symmetry for `k = 2` | Verified for `(2, 3)`: `sqrt2_sqrt3_finrank`, `card_Gal_eq_four`, `IsKleinFour` |
-| Mediator's fixed field is `ℚ(√(d₁d₂))` | Verified for `(2, 3)`: `fixedField_phantom_middle`, `stabilizer_sqrt6K` |
+| Degree 4 and Klein four symmetry for `k = 2` | Verified for **every** independent pair: `GeneralFieldTower.sqrt_sqrt_finrank`, `GeneralGaloisGroup.card_Gal_eq_four`, `isGalois_K`, `isKleinFour_K` (`(2,3)` instance recovered as a sanity check: `sqrt2_sqrt3_finrank`, `card_Gal_eq_four`, `IsKleinFour`) |
+| Mediator's fixed field is `ℚ(√(d₁d₂))` | Verified for **every** independent pair: `GeneralPhantomFixedField.fixedField_phantom_middle`, `stabilizer_sqrt_prod` (`(2,3)` instance recovered as a sanity check: `fixedField_phantom_middle`, `stabilizer_sqrt6K`) |
+| Triadic product/sum split vs. the Phantom Middle (§11.10 of the Verified Edition) | Verified for **every** independent pair: `GeneralPhantomTriadicBridge.phantom_middle_preserves_the_triadic_product`, `phantom_middle_reverses_the_triadic_sum` (`(2,3)` instance recovered as a sanity check) |
 | (S4) non-realization | Verified abstractly: operational orthogonality; needs `𝕋ᵏ` uncountable |
-| Degree `2ᵏ` and `(ℤ/2)ᵏ` for general `k` | Standard; not formalized |
+| Degree `2ᵏ` and `(ℤ/2)ᵏ` for general `k > 2` | Standard; not formalized. (`k = 2`, i.e. any independent *pair*, is fully verified — see the rows above; this row is specifically about three or more generators.) |
 | Transitive action on orientations (N3) | Standard; not formalized |
 | Density (S3) via Kronecker | Standard; not formalized |
 | Exact decidability procedure (N4) | Implemented and tested in the trap (JavaScript); not formalized in Lean |
 
-The natural next Lean step is the generalization already proposed for the
-repository: prove the `(2, 3)` results for any independent pair `(d₁, d₂)`,
-which would verify the Galois ladder for every two-generator instructure.
+The two-generator Galois ladder — field tower, Galois group, Phantom Middle's
+fixed field, and its interaction with the triadic product/sum split — is now
+verified in Lean for every independent pair `(d₁,d₂)`, not just `(2,3)`; see
+`ROADMAP_LEDGER.md` for the four-step development history. The natural next
+Lean steps from here are: generalizing degree `2ᵏ`/`(ℤ/2)ᵏ` from `k = 2` to
+arbitrary `k` (a genuinely new induction, not a reparametrization); Kronecker
+density (S3); and formalizing the trap's exact-decidability procedure (N4),
+currently only implemented and tested outside Lean.
 
 See [`Foundations_of_Primitive_Reflexivity_Verified_Edition.md`](Foundations_of_Primitive_Reflexivity_Verified_Edition.md)
 for the verified theorems this definition builds on, and
