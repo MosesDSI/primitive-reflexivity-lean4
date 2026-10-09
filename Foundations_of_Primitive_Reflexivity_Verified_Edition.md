@@ -53,9 +53,10 @@ the rows of a 3×3 triadic matrix scales its determinant by the permutation's
 sign. **New in Revision 3:** the Klein four-group's non-identity "Phantom
 Middle" element is shown to fix *exactly* the product `√2·√3`, to be the
 unique non-identity automorphism doing so, and to act on the triadic states of
-`2` and `3` precisely along the line the triad itself draws between exact
-multiplicative closure and defective additive closure — fixing the product,
-reversing the sum. Finally, we verify that discrete and continuum are
+`2` and `3` in line with the split the triad itself draws between exact
+multiplicative closure and defective additive closure — it fixes the product
+coordinate `√2·√3` and reverses the sum coordinate `√2+√3`. (This is proved for
+the pair `(2,3)` only; see §11.10 for its scope.) Finally, we verify that discrete and continuum are
 operationally orthogonal: no bijection of any kind exists between a countable
 carrier and `ℝ` or `ℝ³`, while on a lattice with minimum spacing difference
 quotients stay uniformly bounded and geometric refinement by `1/√2` has only
@@ -120,6 +121,8 @@ Lean: `reflexive_isomorphism` · [`Foundations.lean`](PrimitiveReflexivity/Found
 
 Both theorems concern the diagonal pairs `(x, x)`, which is exactly where
 localized reflexivity lives; they make no claim about pairs of distinct nodes.
+Theorem 2.3 records that the diagonal `{(x,x)}` is contained in every
+reflexive relation `S` on `N`, i.e. that it is their common lower bound.
 
 **Definition 2.5 (Local Nodes).** In the companion project, a node carries a
 natural-number identifier and `ℛ` is equality: `x ℛ y :⟺ x = y`. A node is
@@ -177,7 +180,12 @@ Lean: `off_diagonal_dist_ne_zero`, `dist_eq_zero_iff_R` · [`Theta0Photon/Basic.
 
 > **Interpretation.** Intrinsic identity is scale-free: a node's
 > self-coherence is fixed internally and does not depend on external rulers,
-> orderings or operations. The folder also contains
+> orderings or operations. Theorems 3.1–3.4 hold by construction once the
+> decoration is stipulated to be neutral on the diagonal (`d(x,x)=0`,
+> `x≤x`, `m∘0=m`, or `P(e(x,x))`); 3.4 subsumes 3.1–3.3. What the
+> formalization contributes is that these standard decorations do satisfy the
+> hypothesis, and, in 3.6, that a strict metric detects exactly the diagonal.
+> The folder also contains
 > [`R3_tautological.lean`](R3_bare_lean/R3_tautological.lean), a control
 > showing that the undecorated statement is trivial.
 
@@ -357,6 +365,13 @@ Lean: `axial_clock_never_closes_the_diagonal_gap` · [`Axial_Divergence_Theorem.
 > step with the Polar clock, always reaches a definite phase that can never
 > match the `√2` ratio of the diagonal. The drift between the two clocks
 > cannot be closed.
+>
+> *Scope.* Theorem 7.6 is proved for `Φ=ℕ` with an integer step `c`; there
+> `(nc)² = 2n²` reduces to `c² = 2`, so it restates Theorem 7.4 in the
+> vocabulary of the clock model. It does not yet involve the `2π` structure of
+> §6. A phase type that carries a circle (for example `ℤ/N` or `U(1)` with a
+> rotation step) is where the drift of an angle would be tested against §6;
+> that connection is not formalized.
 
 ## 8. Order Obstruction and the Certified Field ℚ(√2)
 
@@ -488,9 +503,11 @@ Lean: `const_one_satisfies_both_conditions` · [`UniquenessTest.lean`](Theta__0_
 > positive residue (9.4); at 45° the two orthogonal components carry equal
 > weight (9.5). Classical `ℕ` is the projection `π` of the triad: it sees
 > addition correctly on the count alone, and the one quantity it discards is
-> the mediator defect (9.11). **§11.10 shows this mediator coordinate is
-> exactly what the Phantom Middle of §11's Galois group fixes, and the
-> additive defect coordinate is exactly what it reverses.**
+> the mediator defect (9.11). **§11.10 relates this split to the Galois
+> group of §11 for the pair `(2,3)`: the Phantom Middle fixes the product
+> coordinate `√2·√3`, where the triad closes exactly, and negates the sum
+> coordinate `√2+√3`, where the defect arises. It also negates `√2` and `√3`
+> individually.**
 
 ## 10. Discrete Harmonic Centers
 
@@ -545,9 +562,11 @@ sign flips of `K` and `π = σ∘τ` their composite, the Phantom Middle.
 (c) `x ∈ K` is fixed by `π` iff `x = a+b·√2·√3` for `a,b ∈ ℚ`.
 (d) The fixed field of `⟨π⟩` is `ℚ(√2·√3)`.
 
-Part (a) was already known in Revision 2 (`phantom_middle_sqrt2` there gives
-the flip on `√2` alone, and `π` corresponding to `(1,1)` of `ℤ/2×ℤ/2` via
-`galoisKleinFourEquiv_phantom_middle`); (b)–(d) are new in Revision 3.
+In Revision 2 this theorem recorded only that `π` sends `√2` to `−√2`
+(`phantom_middle_sqrt2`) and that `π` corresponds to `(1,1)` of `ℤ/2×ℤ/2`
+(`galoisKleinFourEquiv_phantom_middle`). Revision 3 states (a)–(d) as theorems
+in `PhantomFixedField.lean`; (a) follows from the earlier flip lemmas on `√2`
+and `√3` by `map_mul`, but is first stated there.
 
 Lean: `phantom_middle_fixes_sqrt6K` ([L72](Theta__0_Photon/Theta0Photon/Algebra/PhantomFixedField.lean#L72)),
 `sigma_negates_sqrt6K` ([L85](Theta__0_Photon/Theta0Photon/Algebra/PhantomFixedField.lean#L85)),
@@ -580,8 +599,13 @@ belongs between 11.8 and 11.10; none exists yet.)
 axial coordinates of the componentwise product and sum of the triadic states
 of 2 and 3 (Definition 9.6) as `√2·√3` and `√2+√3`. The Phantom Middle fixes
 the first (11.6a) and sends the second to its negation. The product
-coordinate is exactly closed (9.7); the sum coordinate carries the strictly
-positive mediator defect `ℰ(2,3)` (9.4).
+coordinate is exactly closed (9.7); the sum coordinate falls short of `√5` by
+the strictly positive mediator defect `ℰ(2,3) = √2+√3−√5` (9.4).
+
+*Scope.* This is proved for the pair `(2,3)` only, as the Lean file's own
+docstring states. The Phantom Middle acts on the sum coordinate `√2+√3`, which
+lies in `K`; it does not act on the defect itself, since `√5 ∉ K` (a standard
+fact about `K`, not among the Lean results).
 
 Lean: `triadic_product_two_three_eq_sqrt6K` ([L56](Theta__0_Photon/Theta0Photon/Algebra/PhantomTriadicBridge.lean#L56)),
 `phantom_middle_preserves_the_triadic_product` ([L76](Theta__0_Photon/Theta0Photon/Algebra/PhantomTriadicBridge.lean#L76)),
@@ -592,9 +616,15 @@ Lean: `triadic_product_two_three_eq_sqrt6K` ([L56](Theta__0_Photon/Theta0Photon/
 > every quadratic mediator `√n` enters as a genuinely new element. Two
 > independent mediators generate a four-element symmetry group of sign
 > flips. Within that group, the Phantom Middle is the *unique* non-trivial
-> symmetry that fixes their product (11.6b) — it acts as the identity
-> exactly where the triad closes exactly, and as negation exactly where it
-> does not (11.10). `TriadicClosure.lean`'s triadic machinery and
+> symmetry that fixes their product (11.6b) — on the pair
+> `(2,3)` it acts as the identity on the product coordinate, where the triad
+> closes exactly, and as negation on the sum coordinate, where it does not
+> (11.10). Since it also negates `√2` and `√3` individually, the negation is not
+> specific to the defect; what is specific is that the product of the two
+> negated generators is fixed. The Phantom Middle is an automorphism of `K`,
+> not of `ℝ` (which has no non-identity field automorphisms; a standard fact,
+> not among the Lean results), so the bridge works by restricting the
+> real-valued axial coordinates to the countable subfield `K`. `TriadicClosure.lean`'s triadic machinery and
 > `GaloisGroup.lean`'s Galois group were built independently, eight months
 > apart in the framework's own development but one commit apart in this
 > repository's history; §11.10 is the one theorem showing their
@@ -614,6 +644,11 @@ discrete carriers and their relation to `ℝⁿ`.*
 **Definition 12.1 (Operational Orthogonality).** Types `A` and `B` are
 operationally orthogonal if `A` is countable and `B` is uncountable.
 Lean: `OperationallyOrthogonal`
+
+*Note on "discrete".* In 12.1–12.4 a carrier is "discrete" when it is
+countable. In 12.5–12.7 it means a metric space with minimum spacing `h_min>0`.
+The two senses are independent: `ℚ(√2)` is countable, yet dense (8.10), so it
+has no minimum spacing.
 
 **Theorem 12.2 (No Bridge of Any Kind).** If `A` and `B` are operationally
 orthogonal, there is no bijection `A ≃ B`. Consequently, for any notion of
@@ -648,9 +683,9 @@ Lean: `gradient_bound_at_max_valid_level`, `gradient_bound_le_of_max_valid_level
 > object: no bijection of any kind connects a countable carrier to `ℝ` or
 > `ℝ³`. On the discrete side, a minimum spacing keeps difference quotients
 > bounded, and refinement by the diagonal factor `1/√2` terminates after
-> finitely many levels. The four incommensurability results in this paper —
-> arithmetic descent (§5, §7, §8), field-theoretic non-membership (§11),
-> order-theoretic retraction failure (§8), and cardinality (§12) — are the
+> finitely many levels. Four families of results in this paper —
+> arithmetic descent (§5, §7, Lemma 8.3), order-theoretic retraction failure
+> (§8), field-theoretic non-membership (§11), and cardinality (§12) — are the
 > same phenomenon recurring at four different levels of mathematical
 > machinery, not a single ladder of increasing strength; each is a fact of
 > its own genre, checked on its own terms.
@@ -680,8 +715,8 @@ non-square `n`, every `ℚ(√n)` has degree 2, and `ℚ(√2,√3)` has degree 
 a Klein four symmetry whose composite flip is the Phantom Middle; determinants
 of triadic matrices carry a chiral sign (§11). The triad is exactly closed
 under multiplication, and classical `ℕ` is its projection, discarding
-precisely the mediator defect (§9) — **and the Phantom Middle acts on that
-same split exactly: fixing the product, reversing the sum (§11.10).**
+precisely the mediator defect (§9) — **and, for the pair `(2,3)`, the Phantom Middle respects that same split:
+it fixes the product coordinate and reverses the sum coordinate (§11.10).**
 Discrete and continuum admit no bijection of any kind, while the discrete
 side carries bounded gradients and finitely many refinement levels (§12).
 

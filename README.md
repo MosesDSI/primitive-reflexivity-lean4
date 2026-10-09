@@ -27,7 +27,7 @@ All theorems live in [`PrimitiveReflexivity/Foundations.lean`](PrimitiveReflexiv
 
 | Theorem | Statement |
 |---|---|
-| `reflexive_minimality` | Any relation satisfying reflexivity pointwise is dominated by a locally-reflexive relation's own reflexivity. |
+| `reflexive_minimality` | The diagonal of a locally-reflexive `ℛ` is contained in every pointwise-reflexive relation `S`: `x ℛ x → x S x`. |
 | `reflexive_isomorphism` | Local reflexivity transports across a type equivalence. |
 | `prime_incompressibility` | `Nat.Prime p ↔` `p`'s divisor set is exactly `{1, p}` — primality as an "arithmetic per se identity." |
 | `manhattan_is_rational` | The Manhattan (L¹) unit step `1 + 1` is rational. |
@@ -123,7 +123,9 @@ project — same pinned toolchain and Mathlib revision as this repo — that has
 original `metric_independence` diagonal-collapse / statistical-analogue starting point: it now also
 proves the `ℚ(√2,√3)` field tower and its Klein four-group of automorphisms, the "Phantom Middle"
 symmetry that fixes exactly the product `√2·√3` (and is the unique non-identity symmetry doing so),
-a triadic-closure result connecting that symmetry back to this repo's own mediator-defect theorems,
+a triadic-closure result and, for the pair `(2,3)` only, a bridge showing that symmetry fixes the
+product coordinate and negates the sum coordinate of the two triadic states (this repo's own
+mediator-defect setting),
 a chiral-sign/orientation law, and a countable/uncountable operational-orthogonality result. See its
 own `README.md` for the full theorem-by-file ledger, or the narrative doc linked above for all of it
 walked together with this project's theorems.
