@@ -9,6 +9,7 @@ import Theta0Photon.Algebra.GeneralFieldTower
 import Theta0Photon.Algebra.GaloisGroup
 import Theta0Photon.Algebra.GeneralGaloisGroup
 import Theta0Photon.Algebra.PhantomFixedField
+import Theta0Photon.Algebra.GeneralPhantomFixedField
 import Theta0Photon.SetTheory.Incommensurability
 import Theta0Photon.Algebra.TriadicClosure
 import Theta0Photon.Algebra.PhantomTriadicBridge
