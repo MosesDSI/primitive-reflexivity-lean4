@@ -30,3 +30,14 @@ jobs:
           lake-package-directory: SimulationExchange
           leanchecker: true
           axiom-audit: true
+
+  theta-0-photon:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: leanprover/lean-action@v1
+        with:
+          lake-package-directory: Theta__0_Photon
+          leanchecker: true
+          axiom-audit: true
