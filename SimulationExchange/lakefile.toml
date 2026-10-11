@@ -1,0 +1,5 @@
+name = "SimulationExchange"
+defaultTargets = ["SimulationExchange"]
+
+[[lean_lib]]
+name = "SimulationExchange"

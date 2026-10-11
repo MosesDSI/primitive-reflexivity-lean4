@@ -194,6 +194,8 @@ Every exact decision the trap makes is executed from the two integers 30 and
 | Component | Status |
 |---|---|
 | Non-square `d` makes `x² − d` irreducible (N5) | Verified for every non-square `d`: `triadic_ground_irreducible` |
+| (N5) faithfulness, stated directly (not via irreducibility) | Verified for every non-square `d`, any characteristic-0 commutative ring, bare Lean: `SimulationExchange.faithful` (and `descent`, the general-`d` form of the Verified Edition's Theorem 7.4) |
+| `K_I` as a characteristic-0 commutative ring (E1), kernel-checked model | Verified for any `(d₁, d₂)`: `SimulationExchange.Inst d₁ d₂`, `Inst.x₁_sq`, `Inst.x₂_sq`, `IsCharP (Inst d₁ d₂) 0`. That `Inst d₁ d₂` is a *field* under the independence condition is **not** proved by this model — see `GeneralFieldTower.lean` for the field-degree result over `ℚ(√d₁,√d₂)` instead |
 | Each `ℚ(√d)` has degree 2 | Verified for every non-square `d`: `sqrt_finrank` |
 | Degree 4 and Klein four symmetry for `k = 2` | Verified for **every** independent pair: `GeneralFieldTower.sqrt_sqrt_finrank`, `GeneralGaloisGroup.card_Gal_eq_four`, `isGalois_K`, `isKleinFour_K` (`(2,3)` instance recovered as a sanity check: `sqrt2_sqrt3_finrank`, `card_Gal_eq_four`, `IsKleinFour`) |
 | Mediator's fixed field is `ℚ(√(d₁d₂))` | Verified for **every** independent pair: `GeneralPhantomFixedField.fixedField_phantom_middle`, `stabilizer_sqrt_prod` (`(2,3)` instance recovered as a sanity check: `fixedField_phantom_middle`, `stabilizer_sqrt6K`) |

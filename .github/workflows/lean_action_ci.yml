@@ -19,3 +19,14 @@ jobs:
       - uses: actions/checkout@v5
       - uses: leanprover/lean-action@v1
       - uses: leanprover-community/docgen-action@v1
+
+  simulation-exchange:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: leanprover/lean-action@v1
+        with:
+          lake-package-directory: SimulationExchange
+          leanchecker: true
+          axiom-audit: true
