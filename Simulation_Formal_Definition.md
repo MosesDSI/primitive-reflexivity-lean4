@@ -109,7 +109,7 @@ roles:
 | Condition | Status | Lean |
 |---|---|---|
 | (S1) | True by construction | Quick target |
-| (S2) | **Verified**, bare Lean, no Mathlib: `SimulationExchange.faithful` proves faithfulness for `s·s = d`, any non-square `d`, in any characteristic-0 commutative ring — not just the irrationality of `√30` in `ℝ`. The `ℝ = s`, `s = √30` instance is the Mathlib-side corollary described in `SimulationExchange`'s build summary, not yet carried out in the Mathlib tree. | Carried out in `SimulationExchange/` (bare Lean); `ℝ`-instantiation is the remaining Mathlib-bridge step |
+| (S2) | **Verified**, both tiers. Bare Lean, no Mathlib: `SimulationExchange.faithful` proves faithfulness for `s·s = d`, any non-square `d`, in any characteristic-0 commutative ring. Mathlib tree: `Theta0Photon.SimulationExchangeBridge.faithful_real` and `.fract_faithful` instantiate it at `R = ℝ`, `s = √d` (any non-square `d`, not just the trap's `d = 30`), stated directly with `Int.fract`. | Carried out in both `SimulationExchange/` (bare Lean) and `Theta__0_Photon/Theta0Photon/Algebra/SimulationExchangeBridge.lean` (Mathlib bridge) |
 | (S3) | Standard theorem (Kronecker), not yet formalized | Substantial target |
 | (S4) | Follows from the verified operational-orthogonality theorem once `Φ` is shown uncountable (a short lemma) | Quick target |
 

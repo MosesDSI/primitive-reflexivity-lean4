@@ -7,6 +7,10 @@ name = "mathlib"
 scope = "leanprover-community"
 rev = "v4.33.1"
 
+[[require]]
+name = "SimulationExchange"
+path = "../SimulationExchange"
+
 [[lean_lib]]
 name = "Theta0Photon"
 
