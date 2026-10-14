@@ -70,3 +70,7 @@ Jonathon then asked for all three of the pending items:
 - Committed locally on `master`, **not pushed**, pending Jonathon's go-ahead.
 - `Two_Walkers_and_a_Tick.md` and `Discrete_Evidence_in_Neuroscience.md` are at the repo root, untracked by request. Audit findings 4–6 (tier labels and appendix wording in the papers) have not been edited into the drafts. With the bridge in place, *Two Walkers* §2.1's "through a separate bridge, for the real numbers" is now true for Theorems A, B and C.
 - Remaining optional target: the Galois intertwining cross-check (`switch p q` ↔ `sigma_K`/`tau_K`/`phantom_middle`). The open target is "only four automorphisms" of `Inst d₁ d₂`.
+
+## Addendum: ContinuumBridge Warning Cleared
+
+At Jonathon's request, `validLevel_fintype` in `Theta0Photon/NavierStokes/ContinuumBridge.lean` is now marked `@[instance_reducible]`, which removes the `warn.classDefReducibility` warning. Nothing references the definition, so no downstream code changes. All 12 declarations in the file are still within `[propext, Classical.choice, Quot.sound]`. The full `lake build Theta0Photon` is clean with no warnings (2633 jobs). Commit `f2797c3`, not pushed.
