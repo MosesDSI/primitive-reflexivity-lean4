@@ -155,6 +155,7 @@ theorem validLevel_finite {L₀ h_min : ℝ} (hL : 0 < L₀) (h_min_pos : 0 < h_
 
 /-- Immediate corollary of `validLevel_finite`: the subtype of valid geometric
 scale levels is a `Fintype`. -/
+@[instance_reducible]
 noncomputable def validLevel_fintype {L₀ h_min : ℝ} (hL : 0 < L₀)
     (h_min_pos : 0 < h_min) : Fintype {N : ℕ // ValidLevel L₀ h_min N} :=
   have : Finite {N : ℕ // ValidLevel L₀ h_min N} :=
