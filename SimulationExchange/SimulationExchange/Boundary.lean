@@ -12,6 +12,9 @@
   §15  The in-step bit: the Phantom Middle (flip both) preserves it at every
        tick; a single flip (σ or τ) inverts it at every tick.
        Uses only that each walker is a non-square — NOT the product condition.
+  §15b Parity gate preservation: exchanging the walkers fixes the shared
+       coordinate D₁ = a₁ + a₂, negates the depth D₂ = a₁ − a₂, keeps the
+       tick, and leaves the in-step gate (the parity of D₂) unchanged.
 -/
 import SimulationExchange.Core
 import SimulationExchange.Model
@@ -160,6 +163,50 @@ theorem single_flip_needs_nonSquare :
     (AbovePos 4 ↔ AbovePos 2) ∧ (AboveNeg 3 ↔ AbovePos 2) := by
   unfold FloorPos FloorNeg AbovePos AboveNeg; decide
 
+/-! ## §15b  Parity gate preservation under the chiral swap
+
+At tick `n` the two walkers' floors `a₁, a₂` split exactly into a shared
+coordinate `D₁ = a₁ + a₂` and a difference (depth) coordinate
+`D₂ = a₁ − a₂` (integer form, no halving: `2a₁ = D₁ + D₂`, `2a₂ = D₁ − D₂`).
+The chiral swap exchanges the two walkers at the same tick. It negates `D₂`
+and fixes `D₁`, the in-step gate reads only the parity of `D₂`, and the tick
+is untouched. Pure parity: no hypothesis on `d₁, d₂` is used. -/
+
+/-- Shared coordinate of the two floors. -/
+def D₁ (a₁ a₂ : Nat) : Int := (a₁ : Int) + a₂
+/-- Difference (depth) coordinate of the two floors. -/
+def D₂ (a₁ a₂ : Nat) : Int := (a₁ : Int) - a₂
+
+/-- The split is exact. -/
+theorem split_exact (a₁ a₂ : Nat) :
+    D₁ a₁ a₂ + D₂ a₁ a₂ = 2 * a₁ ∧ D₁ a₁ a₂ - D₂ a₁ a₂ = 2 * a₂ := by
+  unfold D₁ D₂; omega
+
+/-- **The in-step gate reads the depth's parity.** Two walkers are in step
+    exactly when `D₂` is even. -/
+theorem inStep_iff_D₂_even (a₁ a₂ : Nat) :
+    (AbovePos a₁ ↔ AbovePos a₂) ↔ D₂ a₁ a₂ % 2 = 0 := by
+  unfold AbovePos D₂; omega
+
+/-- **Parity gate preservation.** Swapping the walkers at tick `n` keeps both
+    floors certified at the same tick `n` (the carrier is not displaced),
+    fixes `D₁`, negates `D₂`, and leaves the in-step gate unchanged. -/
+theorem chiral_swap_preserves_gate {d₁ d₂ n a₁ a₂ : Nat}
+    (hp₁ : FloorPos d₁ n a₁) (hp₂ : FloorPos d₂ n a₂) :
+    (FloorPos d₂ n a₂ ∧ FloorPos d₁ n a₁) ∧
+    D₁ a₂ a₁ = D₁ a₁ a₂ ∧ D₂ a₂ a₁ = -D₂ a₁ a₂ ∧
+    ((AbovePos a₂ ↔ AbovePos a₁) ↔ (AbovePos a₁ ↔ AbovePos a₂)) := by
+  refine ⟨⟨hp₂, hp₁⟩, by unfold D₁; omega, by unfold D₂; omega, Iff.intro Iff.symm Iff.symm⟩
+
+/-- The gate does not care which of `D₁`, `D₂` it reads: they have the same
+    parity, so the shared coordinate carries the same in-step bit. -/
+theorem D₁_D₂_same_parity (a₁ a₂ : Nat) : D₁ a₁ a₂ % 2 = D₂ a₁ a₂ % 2 := by
+  unfold D₁ D₂; omega
+
+/-- Identical floors have no depth. -/
+theorem D₂_eq_zero_iff (a₁ a₂ : Nat) : D₂ a₁ a₂ = 0 ↔ a₁ = a₂ := by
+  unfold D₂; omega
+
 /-! ## §16  Instances: the trap `(30, 33)` -/
 
 /-- The trap's walkers satisfy every hypothesis of §15. -/
@@ -181,5 +228,12 @@ theorem trap_tick1_floors :
     above) — and by §15 the Phantom Middle keeps them out of step. -/
 theorem trap_tick1_out_of_step : ¬ (AbovePos 10 ↔ AbovePos 11) := by
   unfold AbovePos; decide
+
+/-- The swap at the trap's tick 1: `D₁ = 21` stays, `D₂ = −1` becomes `+1`,
+    and the gate (odd depth: out of step) is the same on both sides. -/
+theorem trap_tick1_chiral_swap :
+    D₁ 10 11 = 21 ∧ D₁ 11 10 = 21 ∧ D₂ 10 11 = -1 ∧ D₂ 11 10 = 1 ∧
+    ¬ (AbovePos 10 ↔ AbovePos 11) ∧ ¬ (AbovePos 11 ↔ AbovePos 10) := by
+  unfold D₁ D₂ AbovePos; decide
 
 end SimulationExchange

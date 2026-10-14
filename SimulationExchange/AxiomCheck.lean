@@ -85,3 +85,11 @@ open SimulationExchange
 #print axioms Inst.switch_unique_needs_x₁
 #print axioms Inst.switch_unique_needs_x₂
 #print axioms Inst.trap_pi_table
+#print axioms D₁
+#print axioms D₂
+#print axioms split_exact
+#print axioms inStep_iff_D₂_even
+#print axioms chiral_swap_preserves_gate
+#print axioms D₁_D₂_same_parity
+#print axioms D₂_eq_zero_iff
+#print axioms trap_tick1_chiral_swap

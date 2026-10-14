@@ -74,3 +74,9 @@ Jonathon then asked for all three of the pending items:
 ## Addendum: ContinuumBridge Warning Cleared
 
 At Jonathon's request, `validLevel_fintype` in `Theta0Photon/NavierStokes/ContinuumBridge.lean` is now marked `@[instance_reducible]`, which removes the `warn.classDefReducibility` warning. Nothing references the definition, so no downstream code changes. All 12 declarations in the file are still within `[propext, Classical.choice, Quot.sound]`. The full `lake build Theta0Photon` is clean with no warnings (2633 jobs). Commit `f2797c3`, not pushed.
+
+## Addendum: Boundary §15b, Parity Gate Preservation
+
+Added `SimulationExchange/SimulationExchange/Boundary.lean` §15b: `D₁`, `D₂` (the shared and difference coordinates of the two walkers' floors at tick `n`, in integer form with no halving), `split_exact`, `inStep_iff_D₂_even`, `chiral_swap_preserves_gate`, `D₁_D₂_same_parity`, `D₂_eq_zero_iff`, and the instance `trap_tick1_chiral_swap` (D₁ = 21, D₂ = −1 ↔ +1, out of step on both sides). `chiral_swap_preserves_gate` shows that exchanging the walkers keeps both floors certified at the same tick, fixes `D₁`, negates `D₂`, and leaves the in-step gate unchanged. This formalizes the swap step that *Discrete Evidence* §8 marks PROVED BY HAND, in the integer floor model. It is pure parity, with no hypothesis on `(d₁, d₂)`.
+
+Verified: `lake build` clean (10 jobs); `AxiomCheck.lean` now 93 declarations, all 8 new ones within `[propext, Classical.choice, Quot.sound]`; forbidden-token scan clean; `leanchecker --fresh SimulationExchange.Boundary` exit 0; the dependent `Theta0Photon` library still builds (2633 jobs, no warnings).
