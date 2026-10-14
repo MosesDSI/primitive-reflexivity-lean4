@@ -107,6 +107,30 @@ theorem fract_no_direct_rule {d₁ d₂ : ℕ} (hd2 : ¬ IsSquare d₂)
   rw [Rat.cast_def, Rat.cast_def]
   field_simp
 
+/-! ## Theorem C (the meeting walker), instantiated at `R = ℝ` -/
+
+/-- **Theorem C (the meeting walker is faithful) at `R = ℝ`.** Two ticks
+that put the separation walker (step `√d₁ − √d₂`) at an integer-displaced
+phase are equal. Only `d₁·d₂` has to be a non-square; neither `d₁` nor `d₂`
+needs to be one on its own. -/
+theorem meeting_faithful_real {d₁ d₂ : ℕ} (hd12 : ¬ IsSquare (d₁ * d₂)) (n m j : ℤ)
+    (h : (Int.cast (n - m) : ℝ) * (Real.sqrt d₁ - Real.sqrt d₂) = (Int.cast j : ℝ)) :
+    n = m :=
+  SimulationExchange.meeting_faithful ((nonSquare_iff_not_isSquare (d₁ * d₂)).mpr hd12)
+    (Real.sqrt d₁) (Real.sqrt d₂) (sqrt_sq_intCast d₁) (sqrt_sq_intCast d₂) n m j h
+
+/-- **Theorem C, stated with `Int.fract`.** Two ticks whose meeting-walker
+renderings `n·(√d₁ − √d₂)` have the same fractional part are equal. -/
+theorem fract_meeting_faithful {d₁ d₂ : ℕ} (hd12 : ¬ IsSquare (d₁ * d₂)) (n m : ℤ)
+    (h : Int.fract ((n : ℝ) * (Real.sqrt d₁ - Real.sqrt d₂))
+      = Int.fract ((m : ℝ) * (Real.sqrt d₁ - Real.sqrt d₂))) :
+    n = m := by
+  simp only [Int.fract] at h
+  apply meeting_faithful_real hd12 n m
+    (⌊(n : ℝ) * (Real.sqrt d₁ - Real.sqrt d₂)⌋ - ⌊(m : ℝ) * (Real.sqrt d₁ - Real.sqrt d₂)⌋)
+  push_cast
+  linear_combination h
+
 /-! ## Cross-check against `GeneralFieldTower.sqrt_notMem` -/
 
 /-- **Consistency check, not a new proof of `sqrt_notMem`.** If
@@ -145,3 +169,5 @@ end
 #print axioms Theta0Photon.SimulationExchangeBridge.fract_faithful
 #print axioms Theta0Photon.SimulationExchangeBridge.fract_no_direct_rule
 #print axioms Theta0Photon.SimulationExchangeBridge.sqrt_notMem_agrees_with_no_direct_rule
+#print axioms Theta0Photon.SimulationExchangeBridge.meeting_faithful_real
+#print axioms Theta0Photon.SimulationExchangeBridge.fract_meeting_faithful
