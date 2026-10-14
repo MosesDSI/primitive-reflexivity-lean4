@@ -3,3 +3,5 @@ import SimulationExchange.Model
 import SimulationExchange.Instances
 import SimulationExchange.Walkers
 import SimulationExchange.Boundary
+import SimulationExchange.Meeting
+import SimulationExchange.Switching
