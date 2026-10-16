@@ -104,6 +104,7 @@ theorem and_true_split {x y : Bool} (h : (x && y) = true) : x = true ∧ y = tru
 
 /-! ## §11 Trominoes, covering, and shifting -/
 
+set_option genInjectivity false in
 /-- A tromino: the 2×2 block with lower-left cell `(x, y)`, minus corner `miss`. -/
 structure Tromino where
   x : Nat

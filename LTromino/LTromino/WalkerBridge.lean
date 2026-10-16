@@ -55,6 +55,7 @@ def exchange {d₁ d₂ : Int} (x : Inst d₁ d₂) : Inst d₂ d₁ := ⟨x.a, 
 theorem exchange_x₁ {d₁ d₂ : Int} : exchange (Inst.x₁ : Inst d₁ d₂) = Inst.x₂ := rfl
 theorem exchange_x₂ {d₁ d₂ : Int} : exchange (Inst.x₂ : Inst d₁ d₂) = Inst.x₁ := rfl
 
+set_option genInjectivity false in
 /-- An integer 2×2 matrix on the walker coordinates. -/
 structure WalkerMatrix where
   m00 : Int

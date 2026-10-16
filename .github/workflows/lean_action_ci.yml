@@ -41,6 +41,10 @@ jobs:
           lake-package-directory: LTromino
           leanchecker: true
           axiom-audit: true
+          # Empty allowlist: every LTromino declaration must depend on no axioms.
+          # axiom-audit drops blank entries, so "," parses to []; a bare "" could be
+          # replaced by the action's default allowlist.
+          axiom-audit-allow: ","
 
   theta-0-photon:
     runs-on: ubuntu-latest

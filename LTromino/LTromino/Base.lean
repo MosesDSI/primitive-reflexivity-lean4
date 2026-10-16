@@ -81,6 +81,7 @@ Every symmetry of the square is: optionally swap the two coordinates, then
 XOR-flip each coordinate. Three bits, eight symmetries. The flips alone
 (`s = false`) are the Klein four switches of `Switching.lean`. -/
 
+set_option genInjectivity false in
 /-- A symmetry: `s` swaps the coordinates, then `a` flips x and `b` flips y. -/
 structure Sym where
   s : Bool

@@ -226,3 +226,62 @@ grep simp|omega|ac_rfl|native_decide|sorry in Equivariance.lean   # only in the 
 
 - A follow-up commit on `master` sits on top of `1c1d570`. Nothing has been pushed.
 - `LTromino_All_Files.txt` in Downloads is regenerated again. The pre-WalkerBridge backup is kept.
+
+## Addendum: push and first CI run
+
+- Pushed `6ac8101..c33732d` to `origin/master`. Run: https://github.com/MosesDSI/primitive-reflexivity-lean4/actions/runs/38838001089
+- **`ltromino` job: success.**
+  - `lake build` passed (12 jobs).
+  - The leanchecker step ended with `outcome=success`.
+  - axiom-audit v0.1.2 reported: "audited 406 declaration(s) under 'LTromino'; all within the allowlist [propext, Classical.choice, Quot.sound]".
+  - The 406 figure counts every declaration, including defs and auxiliary equation lemmas, not just the 208 theorems.
+- **What CI does not enforce.** The CI allowlist is the standard three axioms, so CI does *not* check the zero-axiom property. That rests on the local `AxiomCheck.lean` audit (208/208 "does not depend on any axioms").
+- **Other jobs:**
+  - `simulation-exchange` and `build` (with docgen) succeeded.
+  - `theta-0-photon` failed with the same error as the runs before this push: the `theta__0_photon:exe` target fails to link with `ld.lld: undefined symbol: main`. Jonathon asked to leave it alone for now.
+  - The overall run is therefore marked failed.
+
+---
+
+# Part 4: making CI enforce zero axioms
+
+## Problem
+
+The `ltromino` CI job ran axiom-audit with lean-action's default allowlist `[propext, Classical.choice, Quot.sound]`, so a regression would pass CI.
+
+A control proved this. I planted `theorem leak_control (a b : Nat) : a + b = b + a := by omega` in a scratch copy, and under the default allowlist the audit reported "all within the allowlist" with exit 0.
+
+## Finding
+
+Rerunning the pinned tool (axiom-audit v0.1.2, `46024e00…`) locally with an empty allowlist failed even on the real package, on three declarations the theorem-level `AxiomCheck.lean` never listed:
+- `Sym.mk.injEq`
+- `Tromino.mk.injEq`
+- `WalkerMatrix.mk.injEq`
+
+Each depends on `[propext]`. Lean generates these `mk.injEq` lemmas automatically for every structure; they state `(⟨a…⟩ = ⟨b…⟩) = (a = b ∧ …)` as an equality of propositions, which needs `propext`. None of the 208 theorems uses them.
+
+So "208/208 theorems axiom-free" was true, while "every declaration in the package is axiom-free" was not.
+
+## Fix
+
+- `set_option genInjectivity false in` is now placed before `Sym` (Base), `Tromino` (Tiling) and `WalkerMatrix` (WalkerBridge). Lean then no longer generates `mk.inj`/`mk.injEq` for them.
+  - Nothing else changes: `deriving DecidableEq` still works, and no proof used those lemmas.
+- In `.github/workflows/lean_action_ci.yml`, the `ltromino` job now has `axiom-audit-allow: ","`.
+  - The tool's `parseNames` drops blank entries, so this is the empty allowlist.
+  - A bare `""` was avoided because the action could substitute its default.
+- The other CI jobs are unchanged. `theta-0-photon` is left alone, per Jonathon.
+
+## What Was Tested
+
+```
+real package,  --allow ","   -> audited 400 declaration(s) under 'LTromino'; all within the allowlist []   exit 0
+leak control,  --allow ","   -> LTromino.leak_control → [propext, Quot.sound] (+ its _proof_1_1)       exit 1
+leak control,  default allow -> "all within the allowlist [propext, Classical.choice, Quot.sound]"    exit 0
+lake build: 12 jobs, 0 warnings · AxiomCheck: 208/208 theorems axiom-free · leanchecker --fresh: all five modules exit 0
+```
+
+The declaration count drops from 406 to 400 because the six generated `mk.inj`/`mk.injEq` lemmas are gone.
+
+## Final State
+
+The changes are committed locally on `master` and not pushed. Pushing is needed to confirm that the CI log prints `allowlist []`.
