@@ -164,3 +164,65 @@ forbidden-token scan (sorry|admit|native_decide|axiom|implemented_by|extern)   #
 - `LTromino/` is committed beside `SimulationExchange/`, together with the CI job, `.gitignore`, the ledger row and this summary.
 - §4.3 is VERIFIED in `Two_Walkers_and_a_Tick.md` (untracked).
 - Nothing has been pushed.
+
+---
+
+# Part 3: `Equivariance.lean` made axiom-free (the whole package now has zero axioms)
+
+## Objective
+
+Before pushing commit `1c1d570`, Jonathon asked that the 13 `Equivariance.lean` theorems still carrying `[propext, (Classical.choice,) Quot.sound]` be brought to "does not depend on any axioms". The method was the one used in `Tiling.lean`: no `simp` or `omega`, case splits on Bool, and local inductive versions of any core lemma that uses `propext`.
+
+## What Was Built
+
+- `LTromino/LTromino/Equivariance.lean`: every proof in §15–§20 was rewritten.
+  - **No definition changed**: `flipAt`, `actB`, `actT` and `Inside` are byte-identical.
+  - **No statement changed**: a script compared all 22 original theorem signatures before and after, and none differ.
+- **38 helper theorems were added, all public and all audited.**
+  - **List toolkit:**
+    - inversion lemmas `mem_cons_inv`, `mem_append_inv`, `mem_map_inv`, `mem_concat4`;
+    - list identities `append_nil'`, `append_assoc'`, `perm_append_comm'`, `map_append'`, `map_map'`, `map_congr'`, `perm_map'`, `map_concat4`;
+    - the block swaps `sw1`, `sw2` and `sw3`.
+  - **Nat toolkit:** `sub_of_add_eq`, `sub_self_add`, `beq_comm'`, `le_of_add_eq`.
+  - **Flip toolkit, discrete-first.** A coordinate is decomposed with `split_on` (local cell plus half offset) or written as a point beyond the board; it is never compared through a subtraction:
+    - flips of a single coordinate: `flip_small`, `flip_big`, `flip_far`, `flip_centre_coord`, `flip_center`, `flip_shift`;
+    - the quadrant bit and local coordinate under a flip: `ble_decomp`, `ble_far`, `ble_flip_board`, `sub_flip`.
+  - **Covering:** `cov_axis` handles one axis of `covers` under a flip. `covers_bool_flip` and `covers_bool_swap` are Bool identities decided by the kernel.
+  - **Sub-holes:** `cellEq_act'`, `cellEq_true`, `subHole_true`, `subHole_false`.
+  - **Board facts:** `inside_shift`, `bridge_inside`.
+- `AxiomCheck.lean` is regenerated from every `theorem` in the five modules (208 lines). `AXIOM_AUDIT.txt` is regenerated from it.
+
+## Problems Encountered and How They Were Fixed
+
+- **More core lemmas that use `propext` (4.33.1):** `List.mem_cons`, `List.mem_append`, `List.mem_map`, `List.Perm.map`, `List.map_map`, `List.map_congr_left`, `List.map_append`, `List.append_assoc`, `List.perm_append_comm`, `List.mem_singleton`, `Nat.add_sub_cancel_left`, `Nat.add_right_cancel`, `Nat.beq_eq`, `Nat.add_sub_add_right`.
+  - `ac_rfl` also brings in `[propext, Quot.sound]`.
+  - Clean, and used: `List.Perm.{cons,trans,symm,swap,append,append_left,append_right,of_eq}`, `List.perm_middle`, `List.mem_cons_self`, `List.mem_cons_of_mem`, `Nat.add_comm`, `Nat.add_assoc`, `Nat.add_left_comm`, `Nat.add_right_comm`, `Nat.sub_self`, `Nat.zero_sub`, `Nat.succ.inj`, `Bool.xor_false`, `Bool.xor_true`.
+  - `cases` on `List.Mem` is clean.
+- **AC rearrangements without `ac_rfl`.** Each one is an explicit `rw` chain over `Nat.add_comm`, `Nat.add_assoc` and `Nat.add_right_comm`. The equations are moved to the Bool level with Tiling's `ble_add_right` and `beq_add_right`, so that no cancellation lemma is needed.
+- **First-build errors, each fixed:**
+  - In `flip_far`, `rw [Nat.add_assoc]` matched the wrong sum; the arguments are now explicit.
+  - In `flip_shift`, a wrong equality chain was replaced by `Nat.succ.inj` plus one rewrite.
+  - `congrArg₂` does not exist in core; the proof uses `show` and `rw` instead.
+  - `beta_reduce` is unavailable. A `dsimp only` was not needed either: the goal was already beta-reduced.
+- **Self-caught cleanup:** an unused helper (`add_right_cancel'`) was removed.
+
+## What Was Tested and What Results Mean
+
+```
+lake build                                         # 12 jobs, 0 warnings, 0 errors
+lake env lean LTromino/AxiomCheck.lean             # exit 0
+  total: 208  axiom-free: 208  with axioms: 0
+  Base 41 · Tiling 77 · Equivariance 60 (22 original + 38 helpers) · DiagonalBridge 13 · WalkerBridge 17
+lake env leanchecker --fresh LTromino.{Base,Tiling,Equivariance,DiagonalBridge,WalkerBridge}   # all exit 0
+grep simp|omega|ac_rfl|native_decide|sorry in Equivariance.lean   # only in the explanatory doc comment
+```
+
+**What the numbers mean.**
+- The requested "22/22 Equivariance, 170/170 total" is met for the original declarations.
+- The honest totals are larger, because the helpers that replace `simp`/`omega` are separate theorems: 60 in `Equivariance.lean` and 208 in the package. Every one of them prints "does not depend on any axioms".
+- The audit covers theorems only. `def`s carry no axioms here, since none of their bodies use any.
+
+## Final State
+
+- A follow-up commit on `master` sits on top of `1c1d570`. Nothing has been pushed.
+- `LTromino_All_Files.txt` in Downloads is regenerated again. The pre-WalkerBridge backup is kept.

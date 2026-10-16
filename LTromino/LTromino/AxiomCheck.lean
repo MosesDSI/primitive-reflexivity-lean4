@@ -1,6 +1,4 @@
 import LTromino
-
--- Base
 #print axioms LTromino.base_witness_non_vacuous
 #print axioms LTromino.base_2x2_minus_1_is_tromino
 #print axioms LTromino.memC_tromino_iff
@@ -42,8 +40,6 @@ import LTromino
 #print axioms LTromino.two_holes_break_conservation
 #print axioms LTromino.two_removed_no_tromino
 #print axioms LTromino.diagonal_pair_disconnected
-
--- Tiling
 #print axioms LTromino.mul_assoc'
 #print axioms LTromino.scale_bisection_step
 #print axioms LTromino.beq_self'
@@ -121,17 +117,53 @@ import LTromino
 #print axioms LTromino.add4_shuffle
 #print axioms LTromino.cov_le_10
 #print axioms LTromino.tiling_needs_single_hole
-
--- Equivariance
 #print axioms LTromino.ble_eq_decide
 #print axioms LTromino.beq_false_iff_ne
+#print axioms LTromino.mem_cons_inv
+#print axioms LTromino.mem_append_inv
+#print axioms LTromino.mem_map_inv
+#print axioms LTromino.mem_concat4
+#print axioms LTromino.append_nil'
+#print axioms LTromino.append_assoc'
+#print axioms LTromino.perm_append_comm'
+#print axioms LTromino.map_append'
+#print axioms LTromino.map_map'
+#print axioms LTromino.map_congr'
+#print axioms LTromino.perm_map'
+#print axioms LTromino.map_concat4
+#print axioms LTromino.sub_of_add_eq
+#print axioms LTromino.sub_self_add
+#print axioms LTromino.beq_comm'
+#print axioms LTromino.le_of_add_eq
+#print axioms LTromino.flip_small
+#print axioms LTromino.flip_big
+#print axioms LTromino.flip_far
+#print axioms LTromino.ble_decomp
+#print axioms LTromino.ble_far
+#print axioms LTromino.ble_flip_board
+#print axioms LTromino.sub_flip
+#print axioms LTromino.flip_centre_coord
+#print axioms LTromino.flip_center
+#print axioms LTromino.flip_shift
+#print axioms LTromino.cov_axis
+#print axioms LTromino.covers_bool_flip
+#print axioms LTromino.covers_bool_swap
 #print axioms LTromino.covers_actT
+#print axioms LTromino.inside_shift
+#print axioms LTromino.bridge_inside
 #print axioms LTromino.tile_inside
 #print axioms LTromino.quadrant_actB
 #print axioms LTromino.bridge_actT
 #print axioms LTromino.shift_actT
 #print axioms LTromino.cellEq_act
+#print axioms LTromino.cellEq_act'
+#print axioms LTromino.cellEq_true
+#print axioms LTromino.subHole_true
+#print axioms LTromino.subHole_false
 #print axioms LTromino.subHole_actB
+#print axioms LTromino.sw1
+#print axioms LTromino.sw2
+#print axioms LTromino.sw3
 #print axioms LTromino.concat4_act_perm
 #print axioms LTromino.concat4_perm
 #print axioms LTromino.tile_equivariant
@@ -158,7 +190,6 @@ import LTromino
 #print axioms LTromino.raw_origin_breaks_exclusivity
 #print axioms LTromino.chiral_swap_on_statistic
 #print axioms LTromino.phantom_middle_negates_sample
-
 #print axioms LTromino.int_zero_mul'
 #print axioms LTromino.int_zero_add'
 #print axioms LTromino.exchange_x₁
