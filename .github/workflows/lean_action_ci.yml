@@ -31,6 +31,17 @@ jobs:
           leanchecker: true
           axiom-audit: true
 
+  ltromino:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: leanprover/lean-action@v1
+        with:
+          lake-package-directory: LTromino
+          leanchecker: true
+          axiom-audit: true
+
   theta-0-photon:
     runs-on: ubuntu-latest
 

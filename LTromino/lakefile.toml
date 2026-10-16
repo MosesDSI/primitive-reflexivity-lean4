@@ -1,0 +1,9 @@
+name = "LTromino"
+defaultTargets = ["LTromino"]
+
+[[require]]
+name = "SimulationExchange"
+path = "../SimulationExchange"
+
+[[lean_lib]]
+name = "LTromino"

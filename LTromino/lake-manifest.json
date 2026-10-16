@@ -1,0 +1,13 @@
+{"version": "1.2.0",
+ "packagesDir": ".lake/packages",
+ "packages":
+ [{"type": "path",
+   "scope": "",
+   "name": "SimulationExchange",
+   "manifestFile": "lake-manifest.json",
+   "inherited": false,
+   "dir": "../SimulationExchange",
+   "configFile": "lakefile.toml"}],
+ "name": "LTromino",
+ "lakeDir": ".lake",
+ "fixedToolchain": false}
