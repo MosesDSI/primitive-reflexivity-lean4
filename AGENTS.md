@@ -64,6 +64,28 @@ Treat the following as distinct evidence sources with different scopes:
 Do not collapse these layers into a single generic "project completeness"
 metric.
 
+### Axiom-audit scope: theorems versus declarations
+
+A `#print axioms` list built from a module's `theorem` lines covers only the
+theorems written in the source. It does not cover declarations the compiler
+synthesizes, such as a structure's `mk.injEq` lemma, which depends on
+`propext`. The environment-wide `axiom-audit` tool, run by CI, checks every
+declaration under a library root. When a claim says "no axioms", check which
+of the two scopes it refers to.
+
+`LTromino/` claims no axioms at both scopes, and CI enforces this:
+
+- The `ltromino` CI job runs `axiom-audit` with `axiom-audit-allow: ","`.
+  This is the empty allowlist: the tool drops blank entries, and a bare `""`
+  could be replaced by the action's default. Do not remove it or widen it.
+- `Sym`, `Tromino` and `WalkerMatrix` are declared with
+  `set_option genInjectivity false`. Lean's auto-generated `mk.injEq` uses
+  `propext`, so this option is load-bearing. As a consequence, proofs cannot
+  use `mk.inj` or `mk.injEq` for these structures.
+- `LTromino/LTromino/AxiomCheck.lean` (theorem scope) is a complement to the
+  CI audit, not a substitute for it.
+- Full account: `docs/notes/LTromino_Axiom_Audit_Scope_and_CI_Enforcement.md`.
+
 ## Relevant Evaluation Criteria
 
 Evaluate:

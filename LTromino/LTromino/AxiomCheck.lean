@@ -1,4 +1,8 @@
 import LTromino
+-- Theorem scope: one line per `theorem` in Base, Tiling, Equivariance, DiagonalBridge and
+-- WalkerBridge, in file order. Regenerate this list when theorems are added. It does not
+-- cover generated declarations; CI's axiom-audit (empty allowlist) covers every declaration.
+-- See docs/notes/LTromino_Axiom_Audit_Scope_and_CI_Enforcement.md.
 #print axioms LTromino.base_witness_non_vacuous
 #print axioms LTromino.base_2x2_minus_1_is_tromino
 #print axioms LTromino.memC_tromino_iff

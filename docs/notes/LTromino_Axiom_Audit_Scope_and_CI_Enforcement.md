@@ -1,9 +1,9 @@
-# Structure Injectivity Axiom Leak and CI Enforcement: Retrospective
+# LTromino Axiom Audit: Theorem Scope, Declaration Scope, and CI Enforcement
 
 **Date:** 2026-10-15
 **Project:** `PrimitiveReflexivity`, package `LTromino/` (core Lean only, no Mathlib)
 **Toolchain:** `leanprover/lean4:v4.33.1`; CI via `leanprover/lean-action@v1` (resolved SHA `24581d74…`), which runs `leanprover-community/axiom-audit` v0.1.2 (SHA `46024e00…`)
-**Commits:** `c33732d` (all 208 theorems axiom-free) → `bf11b64` (CI enforcement, this report)
+**Commits:** `c33732d` (all 208 theorems axiom-free) → `bf11b64` (CI enforcement)
 
 ## Summary
 

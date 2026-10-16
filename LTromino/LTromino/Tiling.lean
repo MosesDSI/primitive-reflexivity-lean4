@@ -104,6 +104,8 @@ theorem and_true_split {x y : Bool} (h : (x && y) = true) : x = true ∧ y = tru
 
 /-! ## §11 Trominoes, covering, and shifting -/
 
+-- No generated `mk.inj`/`mk.injEq`: Lean's `mk.injEq` depends on `propext`, and CI audits
+-- every declaration against an empty allowlist (docs/notes/LTromino_Axiom_Audit_Scope_and_CI_Enforcement.md).
 set_option genInjectivity false in
 /-- A tromino: the 2×2 block with lower-left cell `(x, y)`, minus corner `miss`. -/
 structure Tromino where

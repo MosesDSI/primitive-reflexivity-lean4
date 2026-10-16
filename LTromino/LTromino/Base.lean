@@ -81,6 +81,8 @@ Every symmetry of the square is: optionally swap the two coordinates, then
 XOR-flip each coordinate. Three bits, eight symmetries. The flips alone
 (`s = false`) are the Klein four switches of `Switching.lean`. -/
 
+-- No generated `mk.inj`/`mk.injEq`: Lean's `mk.injEq` depends on `propext`, and CI audits
+-- every declaration against an empty allowlist (docs/notes/LTromino_Axiom_Audit_Scope_and_CI_Enforcement.md).
 set_option genInjectivity false in
 /-- A symmetry: `s` swaps the coordinates, then `a` flips x and `b` flips y. -/
 structure Sym where
