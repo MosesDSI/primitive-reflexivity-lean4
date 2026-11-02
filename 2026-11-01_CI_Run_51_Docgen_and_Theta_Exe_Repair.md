@@ -76,3 +76,13 @@ lake build Main                                # Build completed successfully (2
    - `theta-0-photon`: `lake build` passes, then leanchecker and axiom-audit both finish green.
 3. If the Theta audit or leanchecker fails, investigate that as a new finding. Do not widen the allowlist to make it pass.
 4. Once merged, optionally note in `Theta__0_Photon/2026-09-06_Theta0Photon_Build_Summary.md` that the exe link failure is resolved.
+
+## Addendum: push and first CI run on the branch
+
+- With Jonathon's go-ahead, this summary was committed (`c86a0e3`) and the branch pushed to `origin/ci/fix-docgen-homepage-and-theta-exe`. No PR is open.
+- CI run: https://github.com/MosesDSI/primitive-reflexivity-lean4/actions/runs/41383613745
+  - `ltromino`: success. `simulation-exchange`: success.
+  - `theta-0-photon`: **failure**, after 2m24s, in the `leanprover/lean-action@v1` step. This is earlier than the old link failure (about 7 min), so it is probably a different cause.
+  - `build`: **failure**.
+- **Neither failure has been diagnosed.** The logs could not be read: `gh run view --log-failed` returned nothing over a poor connection. Jonathon asked to leave them for now.
+- **Next step:** read the logs with `gh run view 41383613745 --log-failed` (or the job pages on GitHub), then go through Next Steps 2–3 above. The local `lake build` of the branch passed, so a Theta failure that local building does not reproduce should be compared against what lean-action runs: the cache step, `lake build`, leanchecker and axiom-audit.
