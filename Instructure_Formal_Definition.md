@@ -219,3 +219,7 @@ See [`Foundations_of_Primitive_Reflexivity_Verified_Edition.md`](Foundations_of_
 for the verified theorems this definition builds on, and
 [`Simulation_Formal_Definition.md`](Simulation_Formal_Definition.md) for the
 companion definition of the rendering a given orientation produces.
+[`Projection_Formal_Definition.md`](Projection_Formal_Definition.md) and
+[`Experience_Formal_Definition.md`](Experience_Formal_Definition.md) continue
+the chain: what a finite reading of that rendering keeps, and the record an
+observer makes of it tick by tick.
