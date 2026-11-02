@@ -19,6 +19,12 @@ jobs:
       - uses: actions/checkout@v5
       - uses: leanprover/lean-action@v1
       - uses: leanprover-community/docgen-action@v1
+        with:
+          # docgen treats an existing homepage folder as a Jekyll site, and the
+          # default is "docs", which holds research notes rather than a site.
+          # This folder must not exist in the repository: then docgen skips
+          # Jekyll and publishes only the API documentation.
+          homepage: homepage
 
   simulation-exchange:
     runs-on: ubuntu-latest
