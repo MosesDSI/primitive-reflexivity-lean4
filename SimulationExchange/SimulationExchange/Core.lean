@@ -11,14 +11,16 @@
   Theorem B (not direct):  at no tick n ≥ 1 is walker 2's phase a rational
                            affine function of walker 1's phase.
 
-  Zero-axiom status (see AGENTS.md): §0–§2 and §5–§6 are proved without
+  Zero-axiom status (see AGENTS.md): every declaration is proved without
   axioms and without `simp`/`omega`/`decide`/`by_cases`/`grind`, using
-  `ZeroNat`, `ZeroGrind` and ZeroInt's proved lemmas. §3–§4 are rewritten in
-  the next increment.
+  `ZeroNat`, `ZeroGrind`, ZeroInt's proved lemmas, and the verified
+  normalizer `ZeroRing` for the polynomial identities of §4 (expression trees
+  in `CoreIdentities`).
 -/
 
 import SimulationExchange.ZeroNat
 import SimulationExchange.ZeroGrind
+import SimulationExchange.ZeroRing
 
 set_option genInjectivity false
 
@@ -206,6 +208,10 @@ theorem int_eq_zero_of_cast {R : Type} [CommRing R] [IsCharP R 0] (x : Int)
 
 /-! ## §3  Theorem A — faithfulness: the information is contained -/
 
+open SimulationExchange.ZeroGrind
+  (intCast_mul intCast_add intCast_sub intCast_zero intCast_inj int_eq_of_sub_eq_zero
+   mul_mul_mul_comm add_neg_cancel neg_eq_of_add_eq_zero)
+
 /-- **Theorem A (faithfulness, simulation condition S2).**
     Let `s·s = d` with `d` a non-square, in a commutative ring of
     characteristic 0. If ticks `n` and `m` render walker 1 to the same phase
@@ -215,12 +221,10 @@ theorem int_eq_zero_of_cast {R : Type} [CommRing R] [IsCharP R 0] (x : Int)
 theorem faithful {R : Type} [CommRing R] [IsCharP R 0]
     {d : Nat} (hd : NonSquare d) (s : R) (hs : s * s = Int.cast (d : Int))
     (n m : Int) (j : Int) (h : Int.cast (n - m) * s = (Int.cast j : R)) : n = m := by
-  have hR : (Int.cast ((n - m) * (n - m) * (d : Int) - j * j) : R) = 0 := by
-    grind
-  have hZ := int_eq_zero_of_cast _ hR
-  have : (n - m) * (n - m) * (d : Int) = j * j := by omega
-  have := descent_int hd (n - m) j this
-  omega
+  -- `((n−m)·s)² = (n−m)²·d` in `R`, and it equals `j²`; pull back along the cast.
+  have hcast : (Int.cast ((n - m) * (n - m) * (d : Int)) : R) = Int.cast (j * j) := by
+    rw [intCast_mul, intCast_mul, intCast_mul, ← hs, ← mul_mul_mul_comm, h]
+  exact int_eq_of_sub_eq_zero (descent_int hd (n - m) j (intCast_inj hcast))
 
 /-- **Corollary A′ (walker 1 carries walker 2).** Whatever walker 1 cannot
     tell apart, walker 2 cannot tell apart either: a phase coincidence of
@@ -234,7 +238,7 @@ theorem walker1_determines_walker2 {R : Type} [CommRing R] [IsCharP R 0]
   have hnm := faithful hd₁ s hs n m j h
   refine ⟨0, ?_⟩
   subst hnm
-  grind
+  rw [SimulationExchange.ZeroInt.sub_self n, intCast_zero, Semiring.zero_mul]
 
 /-! ## §4  Theorem B — the information is not directly available -/
 
@@ -243,6 +247,84 @@ theorem walker1_determines_walker2 {R : Type} [CommRing R] [IsCharP R 0]
 def normForm (d₁ d₂ A B C : Int) : Int :=
   (C * C + A * A * d₂ - B * B * d₁) * (C * C + A * A * d₂ - B * B * d₁) - 4 * A * A * C * C * d₂
 
+/-! ### Expression trees for the `ZeroRing` checks of §4
+
+Each identity below is checked by the verified normalizer
+(`ZeroRing.eq_of_check … rfl`); the trees are named definitions, as ZeroRing's
+usage note requires. -/
+
+namespace CoreIdentities
+open SimulationExchange.ZeroRing (RExpr)
+
+/-- Atoms of the norm identity: `s t a b c` = 0 … 4. -/
+def normIdLeft : RExpr :=
+  let S := RExpr.var 0; let T := RExpr.var 1; let A := RExpr.var 2
+  let B := RExpr.var 3; let C := RExpr.var 4
+  .mul (.mul (.mul (.sub (.add C (.mul B S)) (.mul A T))
+                   (.sub (.sub C (.mul B S)) (.mul A T)))
+             (.add (.add C (.mul B S)) (.mul A T)))
+       (.add (.sub C (.mul B S)) (.mul A T))
+
+def normIdRight : RExpr :=
+  let S := RExpr.var 0; let T := RExpr.var 1; let A := RExpr.var 2
+  let B := RExpr.var 3; let C := RExpr.var 4
+  let U := RExpr.sub (.add (.mul C C) (.mul (.mul A A) (.mul T T))) (.mul (.mul B B) (.mul S S))
+  .sub (.mul U U) (.mul (.mul (.mul (.mul (.mul (.const 4) A) A) C) C) (.mul T T))
+
+/-- `(2AC)(2AC)d₂ = 4AACCd₂`; atoms `A C d₂` = 0 1 2. -/
+def twoACLeft : RExpr :=
+  let A := RExpr.var 0; let C := RExpr.var 1; let D := RExpr.var 2
+  .mul (.mul (.mul (.mul (.const 2) A) C) (.mul (.mul (.const 2) A) C)) D
+
+def twoACRight : RExpr :=
+  let A := RExpr.var 0; let C := RExpr.var 1; let D := RExpr.var 2
+  .mul (.mul (.mul (.mul (.mul (.const 4) A) A) C) C) D
+
+/-- `(AAd₂)d₂ = (Ad₂)(Ad₂)`; atoms `A d₂` = 0 1. -/
+def aadLeft : RExpr :=
+  let A := RExpr.var 0; let D := RExpr.var 1
+  .mul (.mul (.mul A A) D) D
+
+def aadRight : RExpr :=
+  let A := RExpr.var 0; let D := RExpr.var 1
+  .mul (.mul A D) (.mul A D)
+
+/-- `normForm` at `A = 0` is `(C² − B²d₁)²`; atoms `B C d₁ d₂` = 0 1 2 3. -/
+def normZeroALeft : RExpr :=
+  let B := RExpr.var 0; let C := RExpr.var 1; let D₁ := RExpr.var 2; let D₂ := RExpr.var 3
+  let O := RExpr.const 0
+  let U := RExpr.sub (.add (.mul C C) (.mul (.mul O O) D₂)) (.mul (.mul B B) D₁)
+  .sub (.mul U U) (.mul (.mul (.mul (.mul (.mul (.const 4) O) O) C) C) D₂)
+
+def normZeroARight : RExpr :=
+  let B := RExpr.var 0; let C := RExpr.var 1; let D₁ := RExpr.var 2
+  let V := RExpr.sub (.mul C C) (.mul (.mul B B) D₁)
+  .mul V V
+
+/-- The affine rule rearranged; atoms `v k₂ u k₁ w n s t` = 0 … 7. -/
+def ruleLeft : RExpr :=
+  let V := RExpr.var 0; let K₂ := RExpr.var 1; let U := RExpr.var 2; let K₁ := RExpr.var 3
+  let W := RExpr.var 4; let N := RExpr.var 5; let S := RExpr.var 6; let T := RExpr.var 7
+  .sub (.add (.add (.sub (.mul V K₂) (.mul U K₁)) W) (.mul (.mul U N) S)) (.mul (.mul V N) T)
+
+def ruleRight : RExpr :=
+  let V := RExpr.var 0; let K₂ := RExpr.var 1; let U := RExpr.var 2; let K₁ := RExpr.var 3
+  let W := RExpr.var 4; let N := RExpr.var 5; let S := RExpr.var 6; let T := RExpr.var 7
+  .neg (.sub (.mul V (.sub (.mul N T) K₂)) (.add (.mul U (.sub (.mul N S) K₁)) W))
+
+end CoreIdentities
+
+open SimulationExchange.ZeroRing (eq_of_check atoms intCommRing)
+
+/-- The polynomial core of the norm identity, in any commutative ring, before
+    `s·s` and `t·t` are replaced by `d₁`, `d₂`. Checked by ZeroRing. -/
+theorem norm_identity_poly {R : Type} [CommRing R] (s t a b c : R) :
+    (c + b * s - a * t) * (c - b * s - a * t) * (c + b * s + a * t) * (c - b * s + a * t)
+      = (c * c + a * a * (t * t) - b * b * (s * s)) * (c * c + a * a * (t * t) - b * b * (s * s))
+        - Int.cast 4 * a * a * c * c * (t * t) :=
+  eq_of_check (atoms [s, t, a, b, c])
+    (e₁ := CoreIdentities.normIdLeft) (e₂ := CoreIdentities.normIdRight) rfl
+
 /-- The norm identity, valid in every commutative ring in which `s·s = d₁`,
     `t·t = d₂` (any choice of signs, so it holds in every orientation). -/
 theorem norm_identity {R : Type} [CommRing R] (s t : R) (d₁ d₂ A B C : Int)
@@ -250,39 +332,87 @@ theorem norm_identity {R : Type} [CommRing R] (s t : R) (d₁ d₂ A B C : Int)
     (Int.cast C + Int.cast B * s - Int.cast A * t) * (Int.cast C - Int.cast B * s - Int.cast A * t)
       * (Int.cast C + Int.cast B * s + Int.cast A * t) * (Int.cast C - Int.cast B * s + Int.cast A * t)
       = (Int.cast (normForm d₁ d₂ A B C) : R) := by
-  unfold normForm
-  grind
+  rw [norm_identity_poly s t (Int.cast A) (Int.cast B) (Int.cast C), hs, ht]
+  show _ = (Int.cast ((C * C + A * A * d₂ - B * B * d₁) * (C * C + A * A * d₂ - B * B * d₁)
+    - 4 * A * A * C * C * d₂) : R)
+  repeat (first | rw [intCast_sub] | rw [intCast_add] | rw [intCast_mul])
+
+/-- `a·b = 0` forces `a = 0` or `b = 0` on `Nat` (a successor times a successor
+    is a successor). -/
+theorem nat_mul_eq_zero : ∀ {a b : Nat}, a * b = 0 → a = 0 ∨ b = 0
+  | 0, _, _ => Or.inl rfl
+  | _ + 1, 0, _ => Or.inr rfl
+  | _ + 1, _ + 1, h => Nat.noConfusion h
+
+/-- `negOfNat k = 0` forces `k = 0`. -/
+theorem negOfNat_eq_zero : ∀ {k : Nat}, Int.negOfNat k = 0 → k = 0
+  | 0, _ => rfl
+  | _ + 1, h => Int.noConfusion h
+
+/-- `a·b = 0` forces `a = 0` or `b = 0` on `Int`, by the constructors of `Int`
+    (core's `Int.mul_eq_zero` carries axioms). -/
+theorem int_mul_eq_zero : ∀ {a b : Int}, a * b = 0 → a = 0 ∨ b = 0
+  | Int.ofNat a, Int.ofNat b, h =>
+    match nat_mul_eq_zero (Int.ofNat.inj (h : Int.ofNat (a * b) = Int.ofNat 0)) with
+    | Or.inl ha => Or.inl (congrArg Int.ofNat ha)
+    | Or.inr hb => Or.inr (congrArg Int.ofNat hb)
+  | Int.ofNat a, Int.negSucc b, h =>
+    match nat_mul_eq_zero (negOfNat_eq_zero (h : Int.negOfNat (a * (b + 1)) = 0)) with
+    | Or.inl ha => Or.inl (congrArg Int.ofNat ha)
+    | Or.inr hb => Nat.noConfusion hb
+  | Int.negSucc a, Int.ofNat b, h =>
+    match nat_mul_eq_zero (negOfNat_eq_zero (h : Int.negOfNat ((a + 1) * b) = 0)) with
+    | Or.inl ha => Nat.noConfusion ha
+    | Or.inr hb => Or.inr (congrArg Int.ofNat hb)
+  | Int.negSucc a, Int.negSucc b, h =>
+    Nat.noConfusion (Int.ofNat.inj (h : Int.ofNat ((a + 1) * (b + 1)) = Int.ofNat 0))
+
+/-- `1 ≤ 0` is false on `Int`: `0 − 1` is `negSucc 0`, which is not nonnegative. -/
+theorem int_not_one_le_zero : ¬ (1 : Int) ≤ 0 :=
+  fun h => nomatch (h : Int.NonNeg (Int.negSucc 0))
 
 /-- **Integer core, walker-2 coefficient.** If `d₂` and `d₁·d₂` are
     non-squares, a vanishing norm forces the `t`-coefficient `A` to vanish.
     (`d₁` itself is not needed for this conclusion.) -/
 theorem normForm_A_eq_zero {d₁ d₂ : Nat} (h₂ : NonSquare d₂) (h₁₂ : NonSquare (d₁ * d₂))
     (A B C : Int) (h : normForm d₁ d₂ A B C = 0) : A = 0 := by
-  unfold normForm at h
-  -- u² = d₂·(2AC)²  ⟹  2AC = 0
+  -- u² = 4A²C²d₂ = (2AC)²·d₂  ⟹  2AC = 0  (descent)
+  have hu4 : (C * C + A * A * d₂ - B * B * d₁) * (C * C + A * A * d₂ - B * B * d₁)
+      = 4 * A * A * C * C * d₂ := int_eq_of_sub_eq_zero h
+  have hid : (2 * A * C) * (2 * A * C) * (d₂ : Int) = 4 * A * A * C * C * d₂ :=
+    @eq_of_check Int intCommRing (@atoms Int intCommRing [A, C, (d₂ : Int)])
+      CoreIdentities.twoACLeft CoreIdentities.twoACRight rfl
   have h2AC : (2 * A * C) * (2 * A * C) * (d₂ : Int)
-      = (C * C + A * A * d₂ - B * B * d₁) * (C * C + A * A * d₂ - B * B * d₁) := by grind
-  have hz := descent_int h₂ _ _ h2AC
+      = (C * C + A * A * d₂ - B * B * d₁) * (C * C + A * A * d₂ - B * B * d₁) :=
+    Eq.trans hid (Eq.symm hu4)
+  have hz : 2 * A * C = 0 := descent_int h₂ _ _ h2AC
+  -- hence u² = 0, so u = 0
   have hu : (C * C + A * A * d₂ - B * B * d₁) * (C * C + A * A * d₂ - B * B * d₁) = 0 := by
-    rw [← h2AC, hz]; simp
+    rw [← h2AC, hz, SimulationExchange.ZeroInt.zero_mul, SimulationExchange.ZeroInt.zero_mul]
   have hu0 : C * C + A * A * d₂ - B * B * d₁ = 0 := int_mul_self_eq_zero hu
-  have hd₂ : (d₂ : Int) ≠ 0 := by
-    intro h0; exact h₂ 0 (by omega)
-  have hAC : A = 0 ∨ C = 0 := by
-    have : A * C = 0 := by grind
-    exact Int.mul_eq_zero.mp this
-  rcases hAC with hA | hC
-  · exact hA
-  · -- C = 0:  A²·d₂ = B²·d₁  ⟹  (A·d₂)² = B²·(d₁d₂)  ⟹  B = 0  ⟹  A = 0
-    subst hC
-    have hB := descent_int h₁₂ B (A * d₂) (by push_cast; grind)
-    subst hB
-    have : A * A * (d₂ : Int) = 0 := by grind
-    have hAA : A * A = 0 := by
-      rcases Int.mul_eq_zero.mp this with h | h
-      · exact h
-      · exact absurd h hd₂
-    exact int_mul_self_eq_zero hAA
+  have hd₂ : (d₂ : Int) ≠ 0 := fun h0 => h₂ 0 (Eq.symm (Int.ofNat.inj h0))
+  -- 2·(AC) = 2·0, cancel 2
+  have hAC : A * C = 0 :=
+    SimulationExchange.ZeroInt.eq_of_mul_eq_mul_left (Nat.zero_lt_succ 1)
+      (Eq.trans (Eq.symm (SimulationExchange.ZeroInt.mul_assoc 2 A C))
+        (Eq.trans hz (Eq.symm (Int.mul_zero 2))) : (2 : Int) * (A * C) = 2 * 0)
+  cases int_mul_eq_zero hAC with
+  | inl hA => exact hA
+  | inr hC =>
+    -- C = 0:  A²·d₂ = B²·d₁  ⟹  (A·d₂)² = B²·(d₁d₂)  ⟹  B = 0  ⟹  A = 0
+    rw [hC, SimulationExchange.ZeroInt.zero_mul, SimulationExchange.ZeroInt.zero_add] at hu0
+    have hAB : A * A * (d₂ : Int) = B * B * d₁ := int_eq_of_sub_eq_zero hu0
+    have hsq : B * B * (d₁ : Int) * d₂ = A * d₂ * (A * d₂) :=
+      Eq.trans (congrArg (fun x => x * (d₂ : Int)) (Eq.symm hAB))
+        (@eq_of_check Int intCommRing (@atoms Int intCommRing [A, (d₂ : Int)])
+          CoreIdentities.aadLeft CoreIdentities.aadRight rfl)
+    have hB : B = 0 :=
+      descent_int h₁₂ B (A * d₂)
+        (Eq.trans (SimulationExchange.ZeroInt.mul_assoc (B * B) d₁ d₂).symm hsq)
+    rw [hB, SimulationExchange.ZeroInt.zero_mul, SimulationExchange.ZeroInt.zero_mul] at hAB
+    cases int_mul_eq_zero hAB with
+    | inl hAA => exact int_mul_self_eq_zero hAA
+    | inr hd => exact absurd hd hd₂
 
 /-- **Integer core, full.** Under the whole independence condition
     (`d₁`, `d₂`, `d₁·d₂` all non-squares) the norm vanishes only at `0`. -/
@@ -291,14 +421,15 @@ theorem normForm_eq_zero {d₁ d₂ : Nat} (h₁ : NonSquare d₁) (h₂ : NonSq
     A = 0 ∧ B = 0 ∧ C = 0 := by
   have hA := normForm_A_eq_zero h₂ h₁₂ A B C h
   subst hA
-  unfold normForm at h
   -- with A = 0 the norm is (C² − B²d₁)², so C² = B²·d₁  ⟹  B = 0  ⟹  C = 0
-  have hu : (C * C - B * B * d₁) * (C * C - B * B * d₁) = 0 := by grind
-  have hu0 := int_mul_self_eq_zero hu
-  have hB := descent_int h₁ B C (by grind)
+  have hid : normForm d₁ d₂ 0 B C = (C * C - B * B * d₁) * (C * C - B * B * d₁) :=
+    @eq_of_check Int intCommRing (@atoms Int intCommRing [B, C, (d₁ : Int), (d₂ : Int)])
+      CoreIdentities.normZeroALeft CoreIdentities.normZeroARight rfl
+  have hu0 : C * C - B * B * d₁ = 0 := int_mul_self_eq_zero (Eq.trans (Eq.symm hid) h)
+  have hB : B = 0 := descent_int h₁ B C (Eq.symm (int_eq_of_sub_eq_zero hu0))
   subst hB
-  have : C * C = 0 := by grind
-  exact ⟨rfl, rfl, int_mul_self_eq_zero this⟩
+  rw [SimulationExchange.ZeroInt.zero_mul, SimulationExchange.ZeroInt.zero_mul] at hu0
+  exact ⟨rfl, rfl, int_mul_self_eq_zero (int_eq_of_sub_eq_zero hu0)⟩
 
 /-- Transfer of a vanishing combination `C + B·s − A·t = 0` in `R` to a
     vanishing norm in `ℤ`, through the norm identity and characteristic 0. -/
@@ -307,10 +438,8 @@ theorem normForm_eq_zero_of_vanishing {R : Type} [CommRing R] [IsCharP R 0]
     (A B C : Int) (h : Int.cast C + Int.cast B * s - Int.cast A * t = (0 : R)) :
     normForm d₁ d₂ A B C = 0 := by
   have hid := norm_identity s t d₁ d₂ A B C hs ht
-  rw [h] at hid
-  have hcast : (Int.cast (normForm d₁ d₂ A B C) : R) = 0 := by
-    rw [← hid]; grind
-  exact int_eq_zero_of_cast _ hcast
+  rw [h, Semiring.zero_mul, Semiring.zero_mul, Semiring.zero_mul] at hid
+  exact int_eq_zero_of_cast _ (Eq.symm hid)
 
 /-- **Linear independence of `1, s, t`.** In any commutative ring of
     characteristic 0 with `s·s = d₁`, `t·t = d₂` and the independence
@@ -334,12 +463,26 @@ theorem no_direct_rule {R : Type} [CommRing R] [IsCharP R 0]
     (n v u w k₁ k₂ : Int) (hn : 1 ≤ n) (hv : 1 ≤ v)
     (θ₁ θ₂ : R) (e₁ : θ₁ = Int.cast n * s - Int.cast k₁) (e₂ : θ₂ = Int.cast n * t - Int.cast k₂)
     (rule : Int.cast v * θ₂ = Int.cast u * θ₁ + (Int.cast w : R)) : False := by
-  have h0 : Int.cast (v * k₂ - u * k₁ + w) + Int.cast (u * n) * s - Int.cast (v * n) * t = (0 : R) := by
-    subst e₁ e₂; grind
+  subst e₁ e₂
+  -- the rule, rearranged into `C + B·s − A·t = 0` with integer coefficients
+  have h0 : Int.cast (v * k₂ - u * k₁ + w) + Int.cast (u * n) * s - Int.cast (v * n) * t
+      = (0 : R) := by
+    repeat (first | rw [intCast_add] | rw [intCast_sub] | rw [intCast_mul])
+    have hT : (Int.cast v * Int.cast k₂ - Int.cast u * Int.cast k₁ + Int.cast w
+          + Int.cast u * Int.cast n * s - Int.cast v * Int.cast n * t : R)
+        = -(Int.cast v * (Int.cast n * t - Int.cast k₂)
+            - (Int.cast u * (Int.cast n * s - Int.cast k₁) + Int.cast w)) :=
+      eq_of_check
+        (atoms [(Int.cast v : R), Int.cast k₂, Int.cast u, Int.cast k₁, Int.cast w,
+          Int.cast n, s, t])
+        (e₁ := CoreIdentities.ruleLeft) (e₂ := CoreIdentities.ruleRight) rfl
+    rw [hT, rule, Ring.sub_eq_add_neg, add_neg_cancel]
+    exact neg_eq_of_add_eq_zero (Semiring.add_zero 0)
   have hA := normForm_A_eq_zero h₂ h₁₂ (v * n) (u * n) (v * k₂ - u * k₁ + w)
     (normForm_eq_zero_of_vanishing s t hs ht _ _ _ h0)
-  have : 0 < v * n := Int.mul_pos (by omega) (by omega)
-  omega
+  cases int_mul_eq_zero hA with
+  | inl h => rw [h] at hv; exact int_not_one_le_zero hv
+  | inr h => rw [h] at hn; exact int_not_one_le_zero hn
 
 /-! ## §5  Necessity: every hypothesis does work -/
 
