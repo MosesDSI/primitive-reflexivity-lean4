@@ -20,8 +20,14 @@ declaration listed with --allow are reported as ALLOWED; any other hit makes
 the exit status 1.
 
 Accepted exceptions (AGENTS.md), for SimulationExchange:
-  --allow SimulationExchange.ZeroGrind.mod_zero' --allow Nat.mod.eq_def
-  --allow SimulationExchange.ZeroInt.sub_shift --allow SimulationExchange.ZeroInt.sub_shift._f
+  IsCharP's `% 0` reading:
+    --allow SimulationExchange.ZeroGrind.mod_zero' --allow Nat.mod.eq_def
+    --allow SimulationExchange.ZeroGrind.ofNat_eq_zero_of_charZero
+    --allow SimulationExchange.Inst.instIsCharPOfNatNat
+  ZeroInt (sanctioned exception; its Nat subtraction serves core's Int.subNatNat):
+    --allow SimulationExchange.ZeroInt.sub_shift --allow SimulationExchange.ZeroInt.sub_shift._f
+    --allow SimulationExchange.ZeroInt.mk_shift --allow SimulationExchange.ZeroInt.mk_succ_right
+  For ProjectionNecessity the same ZeroInt names apply under DSISVerification.ZeroInt.
 """
 import os
 import subprocess
@@ -42,7 +48,14 @@ elab "#nat_ops_all" : command => do
       let m := env.header.moduleNames[idx.toNat]!
       if m == root || root.isPrefixOf m then
         n := n + 1
-        let exprs := [ci.type] ++ (match ci.value? with | some v => [v] | none => [])
+        -- `ConstantInfo.value?` returns `none` for theorems in this Lean version,
+        -- so proof bodies are read explicitly from each kind of declaration.
+        let vals : List Expr := match ci with
+          | .defnInfo d => [d.value]
+          | .thmInfo t => [t.value]
+          | .opaqueInfo o => [o.value]
+          | _ => []
+        let exprs := [ci.type] ++ vals
         for e in exprs do
           let found := e.foldConsts (init := ([] : List Name)) fun c acc =>
             if c == ``Nat.sub || c == ``Nat.pred || c == ``Nat.div || c == ``Nat.mod then
@@ -85,9 +98,14 @@ def main(argv) -> int:
         pkg = os.path.join(os.path.dirname(here), "SimulationExchange")
         scanned, hits, errors = run(pkg, "SimulationExchange.ZeroInt")
         found = {decl for decl, _ in hits}
-        ok = not errors and "SimulationExchange.ZeroInt.sub_shift" in found
+        # Two controls: sub_shift has a Nat subtraction in its statement;
+        # mk_shift has one only in its proof body (statement mk (p+k) (n+k) = mk p n).
+        stmt_ok = "SimulationExchange.ZeroInt.sub_shift" in found
+        proof_ok = "SimulationExchange.ZeroInt.mk_shift" in found
+        ok = not errors and stmt_ok and proof_ok
         print(f"selftest: {'PASS' if ok else 'FAIL'} "
-              f"(positive control ZeroInt.sub_shift {'detected' if ok else 'NOT detected'}; "
+              f"(statement control sub_shift {'detected' if stmt_ok else 'NOT detected'}; "
+              f"proof-body control mk_shift {'detected' if proof_ok else 'NOT detected'}; "
               f"{scanned} declarations scanned)")
         for e in errors:
             print("  ", e)
