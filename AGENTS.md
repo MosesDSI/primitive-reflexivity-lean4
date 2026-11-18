@@ -125,6 +125,12 @@ All Lean 4 proofs, libraries, and verification scripts in this repository must a
   its planted fixture), then `python -I tools/zero_axiom_hygiene.py <files>`.
   Exit status 1 means a forbidden token; every REVIEW line must be checked by
   hand and the outcome stated in the report.
+- **Written Nat operations.** `tools/zero_axiom_natops.py` mechanically
+  checks every declaration's elaborated term for Nat `-`, `/`, `%` and
+  `Nat.sub`/`Nat.pred`/`Nat.div`/`Nat.mod`. Run `--selftest` first (positive
+  control: it must detect ZeroInt's `sub_shift`), then
+  `python -I tools/zero_axiom_natops.py PACKAGE_DIR ROOT [--allow DECL ...]`.
+  Only the accepted exceptions below may be passed to `--allow`.
 - **Nat subtraction (decided 2026-11-18).** "No Nat subtraction" means no
   *written* Nat `-`, `/`, `Nat.sub` or `Nat.pred` in proofs or statements.
   Core Lean's own definitions reach them: `Int.add → Int.subNatNat →
