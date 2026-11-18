@@ -37,6 +37,9 @@ FORBIDDEN = [
     "simp_all", "simpa", "simp_arith", "by_cases", "aesop", "nlinarith",
     "positivity", "ring_nf", "field_simp", "tauto", "propext", "funext",
     "Decidable.em", "Real", "Float", "Rat",
+    # simp-based cast normalization and search tactics
+    "push_cast", "norm_cast", "exact_mod_cast", "assumption_mod_cast",
+    "apply_mod_cast", "rw_mod_cast", "exact?", "apply?", "rw?", "simp?",
 ]
 MACROS = ["nat_ring", "int_ring", "int_transfer"]
 _LEFT = r"(?<=[\w)\]'₀-₉])"
@@ -123,6 +126,7 @@ _EXPECTED = {
     ("REVIEW", 13, "binary -"), ("REVIEW", 14, "binary /"), ("REVIEW", 15, "binary %"),
     ("FORBIDDEN", 16, "Quot"), ("FORBIDDEN", 17, "unsafe"),
     ("FORBIDDEN", 18, "implemented_by"), ("FORBIDDEN", 18, "opaque"),
+    ("FORBIDDEN", 20, "push_cast"),
 }
 
 

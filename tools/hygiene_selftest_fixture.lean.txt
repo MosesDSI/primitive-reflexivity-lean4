@@ -17,3 +17,4 @@ theorem a10 : Quot.sound = Quot.sound := rfl
 unsafe def a11 : Nat := 0
 @[implemented_by a11] opaque a12 : Nat
 theorem a13 : CommRing = CommRing := rfl
+theorem a14 (h : 1 = 1) : True := by push_cast at h; trivial
