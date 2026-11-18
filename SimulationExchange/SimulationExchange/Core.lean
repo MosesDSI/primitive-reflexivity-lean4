@@ -10,7 +10,17 @@
                            so it determines walker 2's phase.
   Theorem B (not direct):  at no tick n ≥ 1 is walker 2's phase a rational
                            affine function of walker 1's phase.
+
+  Zero-axiom status (see AGENTS.md): §0–§2 and §5–§6 are proved without
+  axioms and without `simp`/`omega`/`decide`/`by_cases`/`grind`, using
+  `ZeroNat`, `ZeroGrind` and ZeroInt's proved lemmas. §3–§4 are rewritten in
+  the next increment.
 -/
+
+import SimulationExchange.ZeroNat
+import SimulationExchange.ZeroGrind
+
+set_option genInjectivity false
 
 attribute [local instance] Lean.Grind.Ring.intCast
 open Lean.Grind
@@ -22,87 +32,177 @@ namespace SimulationExchange
 /-- `d` is not the square of any natural number. -/
 def NonSquare (d : Nat) : Prop := ∀ r : Nat, r * r ≠ d
 
-/-- Every natural number lies between two consecutive squares. -/
-theorem exists_floor_sqrt (d : Nat) : ∃ a : Nat, a * a ≤ d ∧ d < (a + 1) * (a + 1) := by
-  induction d with
-  | zero => exact ⟨0, by decide, by decide⟩
-  | succ d ih =>
-    obtain ⟨a, h1, h2⟩ := ih
-    by_cases h : d + 1 < (a + 1) * (a + 1)
-    · exact ⟨a, by omega, h⟩
-    · refine ⟨a + 1, by omega, ?_⟩
-      have : (a + 1 + 1) * (a + 1 + 1) = (a + 1) * (a + 1) + 2 * a + 3 := by grind
-      omega
+/-- Every natural number lies between two consecutive squares.
+    (Peano induction: from `a² ≤ d < (a+1)²`, either `d + 1 < (a+1)²` keeps
+    `a`, or `d + 1 = (a+1)²` moves to `a + 1`.) -/
+theorem exists_floor_sqrt : (d : Nat) → ∃ a : Nat, a * a ≤ d ∧ d < (a + 1) * (a + 1)
+  | 0 => ⟨0, Nat.le_refl 0, Nat.zero_lt_one⟩
+  | d + 1 => by
+    obtain ⟨a, h₁, h₂⟩ := exists_floor_sqrt d
+    cases Nat.lt_or_eq_of_le (h₂ : d + 1 ≤ (a + 1) * (a + 1)) with
+    | inl hlt => exact ⟨a, Nat.le_succ_of_le h₁, hlt⟩
+    | inr heq =>
+      exact ⟨a + 1, Nat.le_of_eq (Eq.symm heq),
+        Nat.lt_of_le_of_lt (Nat.le_of_eq heq)
+          (ZeroNat.mul_self_lt_of_lt (Nat.lt_succ_self (a + 1)))⟩
 
-/-- A number strictly between two consecutive squares is a non-square. -/
+/-- A number strictly between two consecutive squares is a non-square.
+    (Case split `r ≤ a` or `a + 1 ≤ r`; squaring is monotone.) -/
 theorem nonSquare_of_between (d a : Nat) (h1 : a * a < d) (h2 : d < (a + 1) * (a + 1)) :
-    NonSquare d := by
-  intro r hr
-  by_cases hra : r ≤ a
-  · have := Nat.mul_self_le_mul_self hra
-    omega
-  · have : a + 1 ≤ r := by omega
-    have := Nat.mul_self_le_mul_self this
-    omega
+    NonSquare d :=
+  fun r hr =>
+    match Nat.lt_or_ge r (a + 1) with
+    | Or.inl hlt =>
+      Nat.lt_irrefl d
+        (Nat.lt_of_le_of_lt
+          (Nat.le_trans (Nat.le_of_eq (Eq.symm hr))
+            (ZeroNat.mul_self_le_mul_self (Nat.le_of_lt_succ hlt)))
+          h1)
+    | Or.inr hge =>
+      Nat.lt_irrefl d
+        (Nat.lt_of_lt_of_le h2
+          (Nat.le_trans (ZeroNat.mul_self_le_mul_self hge) (Nat.le_of_eq hr)))
 
 /-! ## §1  The descent: the integer core of faithfulness -/
+
+open SimulationExchange.ZeroInt (nat_add_mul nat_mul_assoc nat_mul_left_comm nat_eq_of_sum)
+open SimulationExchange.ZeroNat
+  (mul_lt_mul_right_of_pos mul_pos' mul_mul_self lt_of_mul_self_lt_mul_self)
+
+/-- **One descent step.** If `d` is not a square, `n > 0` and `j² = n²d`,
+    there is a smaller positive `n'` with some `j'² = n'²d`. With
+    `r = ⌊√d⌋`: `n' = j − r n` and `j' = d n − r j`, introduced as witnesses
+    (`r n + n' = j`, `r j + j' = d n`), never by Nat subtraction. The two
+    cross relations `j'·n = n'·j` and `j'·j = n'·(dn)` come from cancelling a
+    common summand (`nat_eq_of_sum`); together they give `n·j'² = n·(n'²d)`. -/
+theorem descent_step {d n j : Nat} (hd : NonSquare d) (hn : 0 < n)
+    (hj : j * j = n * n * d) :
+    ∃ n' j' : Nat, 0 < n' ∧ n' < n ∧ j' * j' = n' * n' * d := by
+  obtain ⟨r, hr₁, hr₂⟩ := exists_floor_sqrt d
+  have hr : r * r < d := Nat.lt_of_le_of_ne hr₁ (hd r)
+  have hd₀ : 0 < d := Nat.lt_of_le_of_lt (Nat.zero_le (r * r)) hr
+  have hnn : 0 < n * n := mul_pos' hn hn
+  have hjj : 0 < j * j :=
+    Nat.lt_of_lt_of_le (mul_pos' hnn hd₀) (Nat.le_of_eq (Eq.symm hj))
+  have hjd : j * j = d * (n * n) := Eq.trans hj (Nat.mul_comm (n * n) d)
+  have hlo : r * n < j :=
+    lt_of_mul_self_lt_mul_self
+      (Nat.lt_of_le_of_lt (Nat.le_of_eq (mul_mul_self r n))
+        (Nat.lt_of_lt_of_le (mul_lt_mul_right_of_pos hr hnn) (Nat.le_of_eq (Eq.symm hjd))))
+  have hhi : j < (r + 1) * n :=
+    lt_of_mul_self_lt_mul_self
+      (Nat.lt_of_le_of_lt (Nat.le_of_eq hjd)
+        (Nat.lt_of_lt_of_le (mul_lt_mul_right_of_pos hr₂ hnn)
+          (Nat.le_of_eq (Eq.symm (mul_mul_self (r + 1) n)))))
+  obtain ⟨n', hA⟩ := Nat.le.dest (Nat.le_of_lt hlo)
+  have hn'pos : 0 < n' :=
+    Nat.lt_of_add_lt_add_left
+      (Nat.lt_of_lt_of_le hlo (Nat.le_of_eq (Eq.symm hA)) : r * n + 0 < r * n + n')
+  have e_r1n : (r + 1) * n = r * n + n :=
+    Eq.trans (nat_add_mul r 1 n) (congrArg (fun t => r * n + t) (Nat.one_mul n))
+  have hn'lt : n' < n :=
+    Nat.lt_of_add_lt_add_left
+      (Nat.lt_of_le_of_lt (Nat.le_of_eq hA)
+        (Nat.lt_of_lt_of_le hhi (Nat.le_of_eq e_r1n)) : r * n + n' < r * n + n)
+  have e_dn : d * (j * j) = (d * n) * (d * n) :=
+    Eq.trans (congrArg (fun t => d * t) hjd)
+      (Eq.trans (Eq.symm (nat_mul_assoc d d (n * n))) (Eq.symm (mul_mul_self d n)))
+  have hrj : r * j < d * n :=
+    lt_of_mul_self_lt_mul_self
+      (Nat.lt_of_le_of_lt (Nat.le_of_eq (mul_mul_self r j))
+        (Nat.lt_of_lt_of_le (mul_lt_mul_right_of_pos hr hjj) (Nat.le_of_eq e_dn)))
+  obtain ⟨j', hB⟩ := Nat.le.dest (Nat.le_of_lt hrj)
+  have e₁ : d * n * n = n * n * d :=
+    Eq.trans (nat_mul_assoc d n n) (Nat.mul_comm d (n * n))
+  have e₂ : r * j * n = r * n * j :=
+    Eq.trans (nat_mul_assoc r j n)
+      (Eq.trans (congrArg (fun t => r * t) (Nat.mul_comm j n))
+        (Eq.symm (nat_mul_assoc r n j)))
+  have hD : j' * n = n' * j :=
+    nat_eq_of_sum (K := r * n * j)
+      (Eq.trans e₁ (Eq.symm hj) : d * n * n = j * j)
+      (Eq.trans (congrArg (fun t => t * n) (Eq.symm hB))
+        (Eq.trans (nat_add_mul (r * j) j' n) (congrArg (fun t => t + j' * n) e₂)))
+      (Eq.trans (congrArg (fun t => t * j) (Eq.symm hA)) (nat_add_mul (r * n) n' j))
+  have e₃ : r * j * j = r * n * (d * n) :=
+    Eq.trans (nat_mul_assoc r j j)
+      (Eq.trans
+        (congrArg (fun t => r * t)
+          (Eq.trans hj
+            (Eq.trans (nat_mul_assoc n n d) (congrArg (fun t => n * t) (Nat.mul_comm n d)))))
+        (Eq.symm (nat_mul_assoc r n (d * n))))
+  have hE : j' * j = n' * (d * n) :=
+    nat_eq_of_sum (K := r * n * (d * n))
+      (Nat.mul_comm (d * n) j)
+      (Eq.trans (congrArg (fun t => t * j) (Eq.symm hB))
+        (Eq.trans (nat_add_mul (r * j) j' j) (congrArg (fun t => t + j' * j) e₃)))
+      (Eq.trans (congrArg (fun t => t * (d * n)) (Eq.symm hA)) (nat_add_mul (r * n) n' (d * n)))
+  have hfin : n * (j' * j') = n * (n' * n' * d) :=
+    Eq.trans (Nat.mul_comm n (j' * j'))
+      (Eq.trans (nat_mul_assoc j' j' n)
+        (Eq.trans (congrArg (fun t => j' * t) hD)
+          (Eq.trans (nat_mul_left_comm j' n' j)
+            (Eq.trans (congrArg (fun t => n' * t) hE)
+              (Eq.trans (Eq.symm (nat_mul_assoc n' n' (d * n)))
+                (Eq.trans (Eq.symm (nat_mul_assoc (n' * n') d n))
+                  (Nat.mul_comm (n' * n' * d) n)))))))
+  exact ⟨n', j', hn'pos, hn'lt, Nat.eq_of_mul_eq_mul_left hn hfin⟩
+
+/-- Strong induction by hand (ordinary Peano induction on a bound `N`): no
+    positive `n < N` has a solution `j² = n²d`. -/
+theorem no_square_multiple_aux {d : Nat} (hd : NonSquare d) :
+    ∀ N n : Nat, n < N → 0 < n → ∀ j : Nat, j * j = n * n * d → False
+  | 0, n, h, _, _, _ => absurd h (Nat.not_lt_zero n)
+  | N + 1, _n, h, hn, _j, hj =>
+    match descent_step hd hn hj with
+    | ⟨n', j', hpos, hlt, hj'⟩ =>
+      no_square_multiple_aux hd N n'
+        (Nat.lt_of_lt_of_le hlt (Nat.le_of_lt_succ h)) hpos j' hj'
+
+/-- If `d` is not a perfect square and `n > 0`, no `j` has `j² = n²d`. -/
+theorem no_square_multiple {d n : Nat} (hd : NonSquare d) (hn : 0 < n) :
+    ∀ j : Nat, j * j ≠ n * n * d :=
+  fun j hj => no_square_multiple_aux hd (n + 1) n (Nat.lt_succ_self n) hn j hj
 
 /-- **Descent.** If `d` is a non-square, then `t·t·d = k·k` forces `t = 0`.
     This generalizes the paper's Theorem 7.4 (the case `d = 2`) to every
     non-square, by the classical descent `(t, k) ↦ (k − a·t, d·t − a·k)`
-    with `a = ⌊√d⌋`, which strictly decreases `t`. -/
-theorem descent {d : Nat} (hd : NonSquare d) (t k : Nat) (h : t * t * d = k * k) : t = 0 := by
-  rcases Nat.eq_zero_or_pos t with h0 | ht
-  · exact h0
-  exfalso
-  obtain ⟨a, ha1, ha2⟩ := exists_floor_sqrt d
-  have ha : a * a < d := Nat.lt_of_le_of_ne ha1 (hd a)
-  have htt : 0 < t * t := Nat.mul_pos ht ht
-  -- a·t < k
-  have hlo : a * t < k := by
-    have : a * a * (t * t) < d * (t * t) := Nat.mul_lt_mul_of_pos_right ha htt
-    have : (a * t) * (a * t) < k * k := by grind
-    exact Nat.mul_self_lt_mul_self_iff.mp this
-  -- k < (a+1)·t
-  have hhi : k < (a + 1) * t := by
-    have : d * (t * t) < (a + 1) * (a + 1) * (t * t) := Nat.mul_lt_mul_of_pos_right ha2 htt
-    have : k * k < ((a + 1) * t) * ((a + 1) * t) := by grind
-    exact Nat.mul_self_lt_mul_self_iff.mp this
-  -- a·k < d·t
-  have hak : a * k < d * t := by
-    have : a * t * k < k * k := Nat.mul_lt_mul_of_pos_right hlo (by omega)
-    have : (a * k) * t < (d * t) * t := by grind
-    exact Nat.lt_of_mul_lt_mul_right this
-  -- the descended pair
-  obtain ⟨t', ht'⟩ : ∃ t', t' + a * t = k := ⟨k - a * t, by omega⟩
-  obtain ⟨k', hk'⟩ : ∃ k', k' + a * k = d * t := ⟨d * t - a * k, by omega⟩
-  have hsq : t' * t' * d = k' * k' := by grind
-  have hpos : 0 < t' := by omega
-  have hlt : t' < t := by
-    have : (a + 1) * t = a * t + t := Nat.succ_mul a t
-    omega
-  have := descent hd t' k' hsq
-  omega
-termination_by t
+    with `a = ⌊√d⌋`, which strictly decreases `t` (`descent_step`). -/
+theorem descent {d : Nat} (hd : NonSquare d) (t k : Nat) (h : t * t * d = k * k) : t = 0 :=
+  match t, h with
+  | 0, _ => rfl
+  | s + 1, h => absurd (Eq.symm h) (no_square_multiple hd (Nat.zero_lt_succ s) k)
+
+/-- Every integer squares to a natural square: `x·x = m·m` with `m = |x|`,
+    and `m = 0` only for `x = 0`. (By the two constructors of `Int`; both
+    products compute to `Int.ofNat` by definition.) -/
+theorem int_mul_self_natSq : ∀ x : Int, ∃ m : Nat, x * x = Int.ofNat (m * m) ∧ (m = 0 → x = 0)
+  | Int.ofNat p => ⟨p, rfl, fun h => congrArg Int.ofNat h⟩
+  | Int.negSucc p => ⟨p + 1, rfl, fun h => Nat.noConfusion h⟩
 
 /-- The descent over the integers. -/
 theorem descent_int {d : Nat} (hd : NonSquare d) (x y : Int)
     (h : x * x * (d : Int) = y * y) : x = 0 := by
-  have h' := congrArg Int.natAbs h
-  simp only [Int.natAbs_mul, Int.natAbs_natCast] at h'
-  exact Int.natAbs_eq_zero.mp (descent hd x.natAbs y.natAbs h')
+  obtain ⟨m, hx, hm⟩ := int_mul_self_natSq x
+  obtain ⟨l, hy, _⟩ := int_mul_self_natSq y
+  rw [hx, hy] at h
+  have h' : Int.ofNat (m * m * d) = Int.ofNat (l * l) := h
+  exact hm (descent hd m l (Int.ofNat.inj h'))
 
 /-- `x·x = 0` forces `x = 0` over the integers. -/
-theorem int_mul_self_eq_zero {x : Int} (h : x * x = 0) : x = 0 := by
-  rcases Int.mul_eq_zero.mp h with h | h <;> exact h
+theorem int_mul_self_eq_zero {x : Int} (h : x * x = 0) : x = 0 :=
+  match int_mul_self_natSq x with
+  | ⟨_m, hx, hm⟩ =>
+    hm (ZeroNat.mul_self_eq_zero
+      (Int.ofNat.inj (Eq.trans (Eq.symm hx) h : Int.ofNat (_m * _m) = Int.ofNat 0)))
 
 /-! ## §2  Characteristic-zero transfer -/
 
-/-- In a ring of characteristic 0, an integer that becomes 0 was already 0. -/
+/-- In a ring of characteristic 0, an integer that becomes 0 was already 0.
+    (Proof in `ZeroGrind`, read through `IsCharP`'s single field.) -/
 theorem int_eq_zero_of_cast {R : Type} [CommRing R] [IsCharP R 0] (x : Int)
-    (h : (Int.cast x : R) = 0) : x = 0 := by
-  have := (IsCharP.intCast_eq_zero_iff (α := R) 0 x).mp h
-  simpa using this
+    (h : (Int.cast x : R) = 0) : x = 0 :=
+  ZeroGrind.int_eq_zero_of_cast x h
 
 /-! ## §3  Theorem A — faithfulness: the information is contained -/
 
@@ -245,22 +345,38 @@ theorem no_direct_rule {R : Type} [CommRing R] [IsCharP R 0]
 
 /-- Theorem A needs `NonSquare d`: for `d = 4`, `t = 1, k = 2` defeats the descent. -/
 theorem descent_needs_nonSquare : ¬ (∀ t k : Nat, t * t * 4 = k * k → t = 0) :=
-  fun h => absurd (h 1 2 rfl) (by decide)
+  fun h => Nat.noConfusion (h 1 2 rfl)
 
-/-- The norm core needs `NonSquare (d₁·d₂)`: `(d₁,d₂) = (2,8)`, `A = 1`. -/
-theorem normForm_needs_product : normForm 2 8 1 2 0 = 0 := by decide
+/-- The norm core needs `NonSquare (d₁·d₂)`: `(d₁,d₂) = (2,8)`, `A = 1`.
+    (Closed integer evaluation, checked by `rfl`.) -/
+theorem normForm_needs_product : normForm 2 8 1 2 0 = 0 := rfl
 /-- The norm core needs `NonSquare d₁`: `(d₁,d₂) = (4,2)`, `B = 1`. -/
-theorem normForm_needs_first : normForm 4 2 0 1 (-2) = 0 := by decide
+theorem normForm_needs_first : normForm 4 2 0 1 (-2) = 0 := rfl
 /-- The norm core needs `NonSquare d₂`: `(d₁,d₂) = (2,4)`, `A = 1`. -/
-theorem normForm_needs_second : normForm 2 4 1 0 2 = 0 := by decide
+theorem normForm_needs_second : normForm 2 4 1 0 2 = 0 := rfl
 
-/-! ## §6  Satisfiability: the hypotheses hold for real instructures -/
+/-! ## §6  Satisfiability: the hypotheses hold for real instructures
 
-theorem nonSquare_2 : NonSquare 2 := nonSquare_of_between 2 1 (by decide) (by decide)
-theorem nonSquare_3 : NonSquare 3 := nonSquare_of_between 3 1 (by decide) (by decide)
-theorem nonSquare_6 : NonSquare (2 * 3) := nonSquare_of_between 6 2 (by decide) (by decide)
-theorem nonSquare_30 : NonSquare 30 := nonSquare_of_between 30 5 (by decide) (by decide)
-theorem nonSquare_33 : NonSquare 33 := nonSquare_of_between 33 5 (by decide) (by decide)
-theorem nonSquare_990 : NonSquare (30 * 33) := nonSquare_of_between 990 31 (by decide) (by decide)
+Each bound `a² < d < (a+1)²` is a closed `Nat.ble` evaluation
+(`Nat.le_of_ble_eq_true rfl`, written in its `n + 1 ≤ m` form). -/
+
+theorem nonSquare_2 : NonSquare 2 :=
+  nonSquare_of_between 2 1 (Nat.le_of_ble_eq_true rfl : 1 * 1 + 1 ≤ 2)
+    (Nat.le_of_ble_eq_true rfl : 2 + 1 ≤ (1 + 1) * (1 + 1))
+theorem nonSquare_3 : NonSquare 3 :=
+  nonSquare_of_between 3 1 (Nat.le_of_ble_eq_true rfl : 1 * 1 + 1 ≤ 3)
+    (Nat.le_of_ble_eq_true rfl : 3 + 1 ≤ (1 + 1) * (1 + 1))
+theorem nonSquare_6 : NonSquare (2 * 3) :=
+  nonSquare_of_between 6 2 (Nat.le_of_ble_eq_true rfl : 2 * 2 + 1 ≤ 6)
+    (Nat.le_of_ble_eq_true rfl : 6 + 1 ≤ (2 + 1) * (2 + 1))
+theorem nonSquare_30 : NonSquare 30 :=
+  nonSquare_of_between 30 5 (Nat.le_of_ble_eq_true rfl : 5 * 5 + 1 ≤ 30)
+    (Nat.le_of_ble_eq_true rfl : 30 + 1 ≤ (5 + 1) * (5 + 1))
+theorem nonSquare_33 : NonSquare 33 :=
+  nonSquare_of_between 33 5 (Nat.le_of_ble_eq_true rfl : 5 * 5 + 1 ≤ 33)
+    (Nat.le_of_ble_eq_true rfl : 33 + 1 ≤ (5 + 1) * (5 + 1))
+theorem nonSquare_990 : NonSquare (30 * 33) :=
+  nonSquare_of_between 990 31 (Nat.le_of_ble_eq_true rfl : 31 * 31 + 1 ≤ 990)
+    (Nat.le_of_ble_eq_true rfl : 990 + 1 ≤ (31 + 1) * (31 + 1))
 
 end SimulationExchange
