@@ -108,9 +108,10 @@ every theorem name and statement unchanged so that `LTromino/` and
 6. Run all gates, in a fresh build:
    - `lake build` (SimulationExchange) and `cd ../LTromino && lake build`
    - `lake env lean migration/ModuleAudit.lean` (Walkers must show 0)
-   - signatures: `lake env lean migration/Signatures.lean | sed 's/^.*info: //' | sort`,
-     compared as a set with `sort migration/signature_baseline.txt`
-     (expect only `Inst.mk.injEq` missing)
+   - signatures: `lake env lean migration/Signatures.lean | sed 's/^.*info: //' | tr -d '\r' | sort`,
+     compared as a set (`comm -23`) with `tr -d '\r' < migration/signature_baseline.txt | sort`
+     (expect only `Inst.mk.injEq` missing). Strip `\r` on both sides, because Git
+     may check the baseline out with Windows line endings.
    - `python -I tools/zero_axiom_hygiene.py --selftest`, then on `Walkers.lean`
    - `python -I tools/zero_axiom_natops.py --selftest`, then
      `python -I tools/zero_axiom_natops.py SimulationExchange SimulationExchange.Walkers`
