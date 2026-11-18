@@ -56,6 +56,22 @@ jobs:
           # replaced by the action's default allowlist.
           axiom-audit-allow: ","
 
+  projection-necessity:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: leanprover/lean-action@v1
+        with:
+          lake-package-directory: ProjectionNecessity_bare_lean
+          leanchecker: true
+          axiom-audit: true
+          # Empty allowlist: every declaration in a module under ProjectionNecessity
+          # (Steps 1-7c and ZeroInt) must depend on no axioms. axiom-audit drops
+          # blank entries, so "," parses to []; a bare "" could be replaced by the
+          # action's default allowlist.
+          axiom-audit-allow: ","
+
   theta-0-photon:
     runs-on: ubuntu-latest
 

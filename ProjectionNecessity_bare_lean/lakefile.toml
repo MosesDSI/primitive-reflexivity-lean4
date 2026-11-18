@@ -1,0 +1,11 @@
+name = "ProjectionNecessity"
+defaultTargets = ["ProjectionNecessity"]
+
+# Bare Lean: no dependencies, not even Mathlib or Batteries.
+# The library root `ProjectionNecessity.lean` imports every module under
+# `ProjectionNecessity/`. CI's axiom-audit audits every declaration whose
+# module is `ProjectionNecessity` or `ProjectionNecessity.*`, with an empty
+# allowlist, so all modules must stay under that prefix.
+
+[[lean_lib]]
+name = "ProjectionNecessity"
