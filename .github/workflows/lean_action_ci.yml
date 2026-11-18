@@ -13,7 +13,11 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # Pinned: on the ubuntu-26.04 image docgen fails to spawn its per-package
+    # srcUri git processes ("resource exhausted (error code: 12, cannot
+    # allocate memory)"). The same docgen-action and doc-gen4 revisions built
+    # the full API docs on ubuntu-24.04.
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v5
