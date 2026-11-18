@@ -19,6 +19,8 @@
 import SimulationExchange.Core
 import SimulationExchange.Model
 
+attribute [local simp] SimulationExchange.Inst.add_def SimulationExchange.Inst.neg_def SimulationExchange.Inst.sub_def SimulationExchange.Inst.mul_def SimulationExchange.Inst.ofNat_def SimulationExchange.Inst.natCast_def SimulationExchange.Inst.intCast_def SimulationExchange.Inst.nsmul_def SimulationExchange.Inst.zsmul_def  -- temporary: removed when this module is rewritten (zero-axiom migration)
+
 attribute [local instance] Lean.Grind.Ring.intCast
 open Lean.Grind
 

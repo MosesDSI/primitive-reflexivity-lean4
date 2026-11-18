@@ -152,6 +152,11 @@ All Lean 4 proofs, libraries, and verification scripts in this repository must a
   `[IsCharP R 0]` can only be read through `% 0`. This is the only permitted
   `%`. It is confined to that reading, and its three REVIEW lines in the
   scanner output are expected.
+  **Extended 2026-11-18** to the two other places where `IsCharP`'s own field
+  forces `% 0`, and to nothing else:
+  `SimulationExchange.ZeroGrind.ofNat_eq_zero_of_charZero` (reads the field)
+  and `SimulationExchange.Inst.instIsCharPOfNatNat` in `Model.lean`, which
+  provides the field. Its statement must stay unchanged.
 
 ## Relevant Evaluation Criteria
 
