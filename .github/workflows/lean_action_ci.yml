@@ -58,7 +58,15 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: leanprover/lean-action@v1
+        env:
+          # Mathlib dependency: each parallel leanchecker task loads the full
+          # import environment, which can exhaust a hosted runner's memory.
+          LEAN_NUM_THREADS: "1"
         with:
           lake-package-directory: Theta__0_Photon
           leanchecker: true
+          # With no arguments leanchecker looks for modules named after the
+          # package, "Theta__0_Photon", and finds none. The library roots are
+          # Theta0Photon and Main (see Theta__0_Photon/lakefile.toml).
+          leanchecker-args: "Theta0Photon Main"
           axiom-audit: true
