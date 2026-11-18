@@ -110,6 +110,15 @@ on every push.
   simulation: a discrete carrier rendered equivariantly, faithfully, and densely into a phase space
   it can never realize, with non-realization resting on this repo's verified
   operational-orthogonality theorem (§12).
+- [`Projection_Formal_Definition.md`](Projection_Formal_Definition.md) — companion definition of a
+  projection: a map to a coarser structure that is exact on what it keeps, exactly accountable for
+  what it discards, irreversible, and, with finitely many values, decided in integers. Its verified
+  instances are the classical count of the triad (§9), the order obstruction (Theorem 8.11) and
+  the walkers' side bit.
+- [`Experience_Formal_Definition.md`](Experience_Formal_Definition.md) — companion definition of an
+  experience: the tick-by-tick record an observer's finite projection makes of a simulation. It is
+  structural only; the reading of human experience in these terms stays interpretive, as in
+  `Discrete_Evidence_in_Neuroscience.md`.
 - `ACKNOWLEDGMENTS.md` — authorship and the human–AI formalization pipeline (Jonathon Pearson's
   paper → Gemini's initial Lean translation → Claude Code's environment setup and proof repair),
   plus a note on what "verified" does and doesn't establish.

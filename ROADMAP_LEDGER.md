@@ -107,6 +107,8 @@ cross-reference.
 | Simulation 5-tuple `(Λ,s,Φ,F,ρ)`, conditions (S1)–(S4) | Framework definition, not a theorem |
 | (S1) equivariance, (S2) faithfulness, (S4) non-realization, for the `√30/√33` trap | Not formalized; "quick target" per the Simulation doc's own table |
 | (S3) density via Kronecker | **Standard; not formalized**, for the trap or in general |
+| Projection `(X,⊙,Y,⊕,p)`, conditions (P1)–(P4) (`Projection_Formal_Definition.md`, 2026-11-01) | Framework definition, not a theorem. Each condition has a verified instance (`projection_commutes_on_n`, `correction_identity`, `triadic_addition_not_closed`, `incommensurability_blocks_retraction`, `FloorPos`/`wall_never_hit`); the abstract structure is not formalized |
+| Experience `e = p ∘ ρ`, conditions (X1)–(X6) (`Experience_Formal_Definition.md`, 2026-11-01) | Framework definition, not a theorem. (X3) and the mirror relabellings verified for the side and in-step bits (`Boundary.lean`); (X2) proved by hand (pigeonhole); (X5) needs Weyl equidistribution (standard, not formalized; it strengthens the Kronecker density of Next Upgrade Targets item 1); (X6) proved by hand from one-dimensional density |
 
 Tier 3 is still honestly a roadmap disguised as a definition — it's the shape
 a future Lean development fills in — but three of its original cells (the

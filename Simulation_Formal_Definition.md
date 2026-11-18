@@ -118,3 +118,7 @@ for the verified theorems this definition builds on, and
 [`Instructure_Formal_Definition.md`](Instructure_Formal_Definition.md) for the
 companion definition of the finite datum that generates a family of
 simulations, one per orientation.
+[`Projection_Formal_Definition.md`](Projection_Formal_Definition.md) and
+[`Experience_Formal_Definition.md`](Experience_Formal_Definition.md) continue
+the chain: what a finite reading of a simulation keeps, and the record an
+observer makes of it tick by tick.
