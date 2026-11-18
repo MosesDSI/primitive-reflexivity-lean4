@@ -8,3 +8,4 @@ import SimulationExchange.Switching
 import SimulationExchange.ZeroInt
 import SimulationExchange.ZeroGrind
 import SimulationExchange.ZeroNat
+import SimulationExchange.ZeroRing

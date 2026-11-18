@@ -1,3 +1,5 @@
+import SimulationExchange.ZeroInt
+
 /-!
 # ZeroGrind — zero-axiom lemmas for core's `Lean.Grind` ring classes
 
@@ -120,5 +122,138 @@ theorem int_eq_zero_of_cast {R : Type} [CommRing R] [IsCharP R 0] (x : Int)
         (congrArg Neg.neg (Ring.intCast_ofNat (k + 1)))
     Nat.noConfusion
       (ofNat_eq_zero_of_charZero (neg_eq_zero (Eq.trans (Eq.symm e) h)) : k + 1 = 0)
+
+/-! ## Increment 1b-i: commutative-ring toolkit from the fields -/
+
+section CommRing
+variable {R : Type} [CommRing R]
+
+theorem add_neg_cancel (a : R) : a + -a = 0 :=
+  Eq.trans (Semiring.add_comm a (-a)) (Ring.neg_add_cancel a)
+
+theorem add_right_comm (a b c : R) : a + b + c = a + c + b :=
+  Eq.trans (Semiring.add_assoc a b c)
+    (Eq.trans (congrArg (fun x => a + x) (Semiring.add_comm b c))
+      (Eq.symm (Semiring.add_assoc a c b)))
+
+theorem add_add_add_comm (a b c d : R) : a + b + (c + d) = a + c + (b + d) :=
+  Eq.trans (Semiring.add_assoc a b (c + d))
+    (Eq.trans (congrArg (fun x => a + x) (add_left_comm b c d))
+      (Eq.symm (Semiring.add_assoc a c (b + d))))
+
+theorem mul_left_comm (a b c : R) : a * (b * c) = b * (a * c) :=
+  Eq.trans (Eq.symm (Semiring.mul_assoc a b c))
+    (Eq.trans (congrArg (fun x => x * c) (CommSemiring.mul_comm a b))
+      (Semiring.mul_assoc b a c))
+
+theorem mul_mul_mul_comm (a b c d : R) : a * b * (c * d) = a * c * (b * d) :=
+  Eq.trans (Semiring.mul_assoc a b (c * d))
+    (Eq.trans (congrArg (fun x => a * x) (mul_left_comm b c d))
+      (Eq.symm (Semiring.mul_assoc a c (b * d))))
+
+/-- An additive inverse is unique: `a + x = 0 → -a = x`. -/
+theorem neg_eq_of_add_eq_zero {a x : R} (h : a + x = 0) : -a = x :=
+  Eq.trans (Eq.symm (Semiring.add_zero (-a)))
+    (Eq.trans (congrArg (fun y => -a + y) (Eq.symm h))
+      (Eq.trans (Eq.symm (Semiring.add_assoc (-a) a x))
+        (Eq.trans (congrArg (fun y => y + x) (Ring.neg_add_cancel a)) (zero_add x))))
+
+theorem neg_neg (a : R) : -(-a) = a :=
+  neg_eq_of_add_eq_zero (Ring.neg_add_cancel a)
+
+theorem neg_add (a b : R) : -(a + b) = -a + -b :=
+  neg_eq_of_add_eq_zero
+    (Eq.trans (add_add_add_comm a b (-a) (-b))
+      (Eq.trans (congrArg (fun y => y + (b + -b)) (add_neg_cancel a))
+        (Eq.trans (zero_add (b + -b)) (add_neg_cancel b))))
+
+theorem neg_mul (a b : R) : -a * b = -(a * b) :=
+  Eq.symm (neg_eq_of_add_eq_zero
+    (Eq.trans (Eq.symm (Semiring.right_distrib a (-a) b))
+      (Eq.trans (congrArg (fun y => y * b) (add_neg_cancel a)) (Semiring.zero_mul b))))
+
+theorem mul_neg (a b : R) : a * -b = -(a * b) :=
+  Eq.trans (CommSemiring.mul_comm a (-b))
+    (Eq.trans (neg_mul b a) (congrArg Neg.neg (CommSemiring.mul_comm b a)))
+
+/-- Numerals multiply, by induction on `n` from `ofNat_add` and `ofNat_succ`. -/
+theorem ofNat_mul (m : Nat) :
+    ∀ n : Nat, (OfNat.ofNat (m * n) : R) = OfNat.ofNat m * OfNat.ofNat n
+  | 0 => Eq.symm (Semiring.mul_zero (OfNat.ofNat m))
+  | n + 1 =>
+    Eq.trans (ofNat_add (m * n) m)
+      (Eq.trans (congrArg (fun y => y + OfNat.ofNat m) (ofNat_mul m n))
+        (Eq.trans
+          (congrArg (fun y => OfNat.ofNat m * OfNat.ofNat n + y)
+            (Eq.symm (Semiring.mul_one (OfNat.ofNat m))))
+          (Eq.trans (Eq.symm (Semiring.left_distrib (OfNat.ofNat m) (OfNat.ofNat n) 1))
+            (congrArg (fun y => OfNat.ofNat m * y) (Eq.symm (Semiring.ofNat_succ n))))))
+
+theorem intCast_zero : (Int.cast 0 : R) = 0 := Ring.intCast_ofNat 0
+
+theorem intCast_one : (Int.cast 1 : R) = 1 := Ring.intCast_ofNat 1
+
+/-- The cast of a pair integer `mk p n = p − n` is `p + -n` in `R`. -/
+theorem castMk (p n : Nat) :
+    (Int.cast (SimulationExchange.ZeroInt.mk p n) : R) = OfNat.ofNat p + -(OfNat.ofNat n) :=
+  match SimulationExchange.ZeroInt.pair_cases p n with
+  | Or.inl ⟨k, hk⟩ => by
+    subst hk
+    rw [SimulationExchange.ZeroInt.mk_of_le k rfl, ofNat_add n k, add_right_comm,
+      add_neg_cancel, zero_add]
+    exact Ring.intCast_ofNat k
+  | Or.inr ⟨k, hk⟩ => by
+    subst hk
+    rw [SimulationExchange.ZeroInt.mk_of_lt k rfl, ofNat_add p (k + 1), neg_add,
+      Eq.symm (Semiring.add_assoc (OfNat.ofNat p) (-(OfNat.ofNat p)) (-(OfNat.ofNat (k + 1)))),
+      add_neg_cancel, zero_add]
+    exact Eq.trans (Ring.intCast_neg (OfNat.ofNat (k + 1) : Int))
+      (congrArg Neg.neg (Ring.intCast_ofNat (k + 1)))
+
+/-- **The cast adds.** Through the pair representation `mk_add`. -/
+theorem intCast_add (x y : Int) : (Int.cast (x + y) : R) = Int.cast x + Int.cast y := by
+  obtain ⟨a, b, rfl⟩ := SimulationExchange.ZeroInt.exists_mk x
+  obtain ⟨c, d, rfl⟩ := SimulationExchange.ZeroInt.exists_mk y
+  rw [SimulationExchange.ZeroInt.mk_add, castMk, castMk, castMk, ofNat_add, ofNat_add, neg_add]
+  exact add_add_add_comm _ _ _ _
+
+/-- **The cast multiplies.** Through the pair representation `mk_mul`. -/
+theorem intCast_mul (x y : Int) : (Int.cast (x * y) : R) = Int.cast x * Int.cast y := by
+  obtain ⟨a, b, rfl⟩ := SimulationExchange.ZeroInt.exists_mk x
+  obtain ⟨c, d, rfl⟩ := SimulationExchange.ZeroInt.exists_mk y
+  rw [SimulationExchange.ZeroInt.mk_mul, castMk, castMk, castMk, ofNat_add, ofNat_add,
+    ofNat_mul a c, ofNat_mul b d, ofNat_mul a d, ofNat_mul b c, neg_add,
+    Semiring.right_distrib, Semiring.left_distrib, Semiring.left_distrib,
+    mul_neg, neg_mul, neg_mul, mul_neg, neg_neg,
+    add_add_add_comm (OfNat.ofNat a * OfNat.ofNat c) (OfNat.ofNat b * OfNat.ofNat d),
+    Semiring.add_comm (OfNat.ofNat b * OfNat.ofNat d)]
+
+theorem intCast_sub (x y : Int) : (Int.cast (x - y) : R) = Int.cast x - Int.cast y := by
+  show (Int.cast (x + -y) : R) = Int.cast x - Int.cast y
+  rw [intCast_add, Ring.intCast_neg, Ring.sub_eq_add_neg]
+
+end CommRing
+
+/-! ## Integer facts used with the casts -/
+
+/-- `a - b = 0 → a = b` on `Int`, from ZeroInt's ring laws. -/
+theorem int_eq_of_sub_eq_zero {a b : Int} (h : a - b = 0) : a = b :=
+  Eq.trans (Eq.symm (Int.add_zero a))
+    (Eq.trans
+      (congrArg (fun y => a + y)
+        (Eq.symm (Eq.trans (SimulationExchange.ZeroInt.add_comm (-b) b)
+          (SimulationExchange.ZeroInt.add_neg_cancel b))))
+      (Eq.trans (Eq.symm (SimulationExchange.ZeroInt.add_assoc a (-b) b))
+        (Eq.trans (congrArg (fun y => y + b) (h : a + -b = 0))
+          (SimulationExchange.ZeroInt.zero_add b))))
+
+/-- **The cast is injective in characteristic 0.** -/
+theorem intCast_inj {R : Type} [CommRing R] [IsCharP R 0] {a b : Int}
+    (h : (Int.cast a : R) = Int.cast b) : a = b :=
+  int_eq_of_sub_eq_zero
+    (int_eq_zero_of_cast (a - b)
+      (Eq.trans (intCast_sub a b)
+        (Eq.trans (congrArg (fun y => y - Int.cast b) h)
+          (Eq.trans (Ring.sub_eq_add_neg _ _) (add_neg_cancel _)))))
 
 end SimulationExchange.ZeroGrind
