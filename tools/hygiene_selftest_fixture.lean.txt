@@ -1,0 +1,19 @@
+/- Fixture for tools/zero_axiom_hygiene.py --selftest. Not a Lean module.
+   Words in comments must be ignored: simp omega grind /- nested: decide sorry -/ by_cases -/
+open Lean.Grind
+theorem a1 : True := by exact (Lean.Grind.Ring.neg_mul (by grind))   -- hidden after Lean.Grind
+theorem a2 (x : Nat) : x = x := by simp only []
+theorem a3 : True := by omega -- trailing comment: decide
+def s := "simp omega grind sorry in a string"
+theorem a4 (a b : Nat) : a - b = a - b := rfl
+theorem a5 (x : Int) : - x = -(x) := rfl
+theorem a6 : True := ZeroGrind.zero_add
+example := Classical.choice
+example (h : 2 = 2) := by nat_ring
+theorem a7 (a b : Nat) : a-b = (a)-(b) := rfl
+theorem a8 (n : Nat) : n / 2 = n / 2 := rfl
+theorem a9 (n : Nat) : n % 2 = n % 2 := rfl
+theorem a10 : Quot.sound = Quot.sound := rfl
+unsafe def a11 : Nat := 0
+@[implemented_by a11] opaque a12 : Nat
+theorem a13 : CommRing = CommRing := rfl

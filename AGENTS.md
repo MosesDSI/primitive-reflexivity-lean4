@@ -86,6 +86,67 @@ of the two scopes it refers to.
   CI audit, not a substitute for it.
 - Full account: `docs/notes/LTromino_Axiom_Audit_Scope_and_CI_Enforcement.md`.
 
+## Zero-Axiom Lean 4 Verification & Hygiene Standard
+
+All Lean 4 proofs, libraries, and verification scripts in this repository must adhere to strict zero-axiom compliance (`0 axioms`, `0 sorrys`, `0 warnings`).
+
+### 1. Kernel-Level Axiom Gate (Ground Truth)
+- **Mandatory `#print axioms` Check:** Every exported theorem and lemma must be verified via `#print axioms <DeclarationName>` in a clean-room check file (or `leanchecker --fresh` / `axiom-audit` with an empty allowlist).
+- **Zero Tolerance for Standard Axioms:** Any dependency on `propext`, `Classical.choice`, `Quot.sound`, `Lean.ofReduceBool`, `Lean.trustCompiler`, or `sorryAx` is an immediate verification failure.
+- **Prevent Implicit Axiom Generation:** On inductive types where compiler-generated `.injEq` lemmas pull in `propext`, explicitly set `set_option genInjectivity false` and prove injectivity constructively.
+
+### 2. Source-Level Lexical Hygiene Gate (Second Line of Defense)
+- **Ban Line-Level Exclusion Filters (`grep -v`):** Never use `grep -v` or any whole-line exclusion filter to suppress false positives. Discarding an entire line because it contains a safe prefix (e.g., `ZeroGrind.` or `Lean.Grind.`) blinds the check to forbidden tokens appended later on that same line.
+- **Require Stateful Lexer-Aware Scanning:** Source scans must strip nested block comments (`/- ... -/`), line comments (`--`), and string literals (`"..."`) prior to pattern matching.
+- **Token-Level Matching Only:** Match forbidden identifiers and automation tactics (`sorry`, `admit`, `axiom`, `opaque`, `unsafe`, `partial`, `implemented_by`, `extern`, `grind`, `omega`, `simp`, `decide`, `native_decide`, `linarith`, `ring`, `norm_num`, `Classical`, `Quot`) strictly as standalone lexical tokens, case-sensitively, without line suppression.
+- **Flag Semantic Hazard Operators:** Any non-commented binary `-` (saturating `Nat` subtraction), `/` (floor division), or `%` (modulo) must be flagged for manual review to ensure no silent truncation or division-by-zero totality assumptions enter discrete proofs.
+
+### 3. Reporting Invariant
+- Never claim a file or proof is "zero-axiom verified" until both the **Lexer-Aware Hygiene Scan** (0 unreviewed violations) and the **Kernel `#print axioms` Audit** pass on a fresh `lake build`.
+
+### Scope, tools and settled interpretations
+
+- **Scope.** The standard governs the zero-axiom packages
+  (`ProjectionNecessity_bare_lean/`, `LTromino/`, and `SimulationExchange/`,
+  whose migration is in progress) and all new bare-Lean work. Mathlib-tier
+  modules (`Theta__0_Photon/`, `PrimitiveReflexivity/`) keep their declared
+  trust base, as described under "How To Interpret The Repository"; do not
+  report their standard axioms as failures of this standard.
+- **Known non-compliance: `LTromino/` (recorded 2026-11-18).** LTromino
+  passes the kernel gate (CI `axiom-audit`, empty allowlist, 0 axioms on all
+  declarations) but fails the lexical gate: it uses `decide` 80 times on
+  closed finite goals (`Base.lean` 38, `DiagonalBridge.lean` 14,
+  `Equivariance.lean` 11, `WalkerBridge.lean` 9, `Tiling.lean` 8). The ban on
+  `decide` stands. These uses are to be rewritten in a separate pass. Until
+  then, do not describe LTromino as compliant with this standard; "0 axioms
+  (kernel gate)" remains accurate.
+- **Scanner.** `tools/zero_axiom_hygiene.py` implements Section 2. Run
+  `python -I tools/zero_axiom_hygiene.py --selftest` first (it must pass on
+  its planted fixture), then `python -I tools/zero_axiom_hygiene.py <files>`.
+  Exit status 1 means a forbidden token; every REVIEW line must be checked by
+  hand and the outcome stated in the report.
+- **Nat subtraction (decided 2026-11-18).** "No Nat subtraction" means no
+  *written* Nat `-`, `/`, `Nat.sub` or `Nat.pred` in proofs or statements.
+  Core Lean's own definitions reach them: `Int.add → Int.subNatNat →
+  Nat.sub`, and `Nat.le_of_succ_le_succ → Nat.pred`. Reaching them only
+  through those core definitions is accepted, and a dependency trace should
+  record it.
+- **ZeroInt exception (decided 2026-11-18).** `ZeroInt.lean` (the copies in
+  `ProjectionNecessity_bare_lean/` and `SimulationExchange/`) is the one
+  sanctioned exception to Section 2. Its `nat_ring` / `int_ring` macros use
+  `simp only`, and its `sub_shift` states a Nat subtraction because core's
+  `Int.subNatNat` is defined by one. All of it is axiom-free. No other file
+  may call its macros; other files use its proved lemmas by name.
+- **Reviewed `%` exception (decided 2026-11-18).**
+  `SimulationExchange/SimulationExchange/ZeroGrind.lean`'s `mod_zero'` states
+  `x % 0 = x`, the division-by-zero convention, and unfolds `Nat.mod` to
+  prove it. It is accepted because core's `Lean.Grind.IsCharP` defines
+  characteristic `p` through its only field,
+  `ofNat_ext_iff : OfNat.ofNat x = OfNat.ofNat y ↔ x % p = y % p`, so
+  `[IsCharP R 0]` can only be read through `% 0`. This is the only permitted
+  `%`. It is confined to that reading, and its three REVIEW lines in the
+  scanner output are expected.
+
 ## Relevant Evaluation Criteria
 
 Evaluate:
